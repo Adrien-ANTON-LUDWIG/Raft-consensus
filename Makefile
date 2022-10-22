@@ -8,7 +8,7 @@ OBJS := $(SRCS:%=$(BUILD_DIR)/%.o)
 DEPS := $(OBJS:.o=.d)
 
 CC := mpic++
-#CFLAGS := -std=c99 -pedantic -Werror -Wall -Wextra -g
+CFLAGS := -pedantic -Werror -Wall -Wextra -g
 CFLAGS=
 #LDFLAGS := -fsanitize=address
 LDFLAGS=
