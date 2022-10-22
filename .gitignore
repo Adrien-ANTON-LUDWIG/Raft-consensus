@@ -30,3 +30,9 @@
 *.exe
 *.out
 *.app
+
+# Custom
+
+## Executable
+my_aws_s3
+
