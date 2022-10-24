@@ -22,6 +22,7 @@ class Server {
               << std::endl;
   }
 
+  void anyStateUpdate();
   void followerUpdate();
   void candidateUpdate();
   void leaderUpdate();

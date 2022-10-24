@@ -1,5 +1,9 @@
 #include "server.h"
 
+void Server::anyStateUpdate() {
+  // TODO : Refer to Raft paper > Rules for Servers > All servers
+}
+
 void Server::followerUpdate() {
   if (current_time - start_time >= election_timeout) {
     if (request != MPI_REQUEST_NULL) MPI_Cancel(&request);
@@ -79,6 +83,8 @@ void Server::leaderUpdate() {
 
 void Server::update() {
   current_time = std::chrono::system_clock::now();
+
+  anyStateUpdate();
 
   switch (state) {
     case LEADER:
