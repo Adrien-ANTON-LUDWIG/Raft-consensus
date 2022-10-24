@@ -15,7 +15,6 @@ class Server {
 
     std::srand(id);
     election_timeout = std::chrono::milliseconds(std::rand() % 150 + 150);
-    if (id == 0) election_timeout = std::chrono::milliseconds(100);
     heartbeat_timeout = std::chrono::milliseconds(50);
     start_time = std::chrono::system_clock::now();
 
