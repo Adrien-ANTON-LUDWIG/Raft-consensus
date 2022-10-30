@@ -11,8 +11,10 @@ namespace Message
     class Message {
     public:
         enum Type {
+            STATUS,
             RPC_REQUEST_VOTE,
             RPC_VOTE,
+            RPC_APPEND_ENTRIES,
             REPL_SPEED,
             REPL_CRASH,
             REPL_START,
