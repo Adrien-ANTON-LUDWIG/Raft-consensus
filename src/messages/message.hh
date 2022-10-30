@@ -11,7 +11,7 @@ namespace Message
     class Message {
     public:
         enum Type {
-            RAFT_VOTE,
+            RPC_REQUEST_VOTE,
             REPL_SPEED,
             REPL_CRASH,
             REPL_START,

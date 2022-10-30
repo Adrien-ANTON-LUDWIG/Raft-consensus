@@ -2,7 +2,7 @@
 
 namespace Message
 {
-    RaftVote::RaftVote(int serverId, int originId) : Message(Type::RAFT_VOTE, originId) {
+    RaftVote::RaftVote(int serverId, int originId) : Message(Type::RPC_REQUEST_VOTE, originId) {
         m_serverId = serverId;
     }
 
