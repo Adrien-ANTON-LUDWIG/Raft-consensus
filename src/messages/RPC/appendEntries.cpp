@@ -57,6 +57,10 @@ namespace Message::RPC
         return m_leaderCommit;
     }
 
+    bool AppendEntries::isHeartbeat() const {
+        return m_entries.size() == 0;
+    }
+
     AppendEntries& AppendEntries::addEntry(const std::string& entry) {
         m_entries.push_back(entry);
 

@@ -33,6 +33,8 @@ namespace Message::RPC
         const std::vector<std::string>& getEntries() const;
         int getLeaderCommit() const;
 
+        bool isHeartbeat() const;
+
         AppendEntries& addEntry(const std::string& entry);
 
         virtual json toJSON() const override;
