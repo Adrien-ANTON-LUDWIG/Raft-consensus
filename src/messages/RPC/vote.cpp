@@ -1,4 +1,4 @@
-#include "Vote.hh"
+#include "vote.hh"
 
 namespace Message::RPC
 {

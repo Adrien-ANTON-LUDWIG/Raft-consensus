@@ -1,5 +1,3 @@
-#pragma once
-
 #include "requestVote.hh"
 
 namespace Message::RPC
@@ -24,7 +22,10 @@ namespace Message::RPC
 
     json RequestVote::toJSON() const {
         json data = Message::toJSON();
+
         data["term"] = m_term;
         data["candidate"] = m_candidateId;
+
+        return data;
     }
 } // namespace Message::RPC
