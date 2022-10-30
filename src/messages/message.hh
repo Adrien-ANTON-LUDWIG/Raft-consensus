@@ -12,6 +12,7 @@ namespace Message
     public:
         enum Type {
             RPC_REQUEST_VOTE,
+            RPC_VOTE,
             REPL_SPEED,
             REPL_CRASH,
             REPL_START,
@@ -25,6 +26,7 @@ namespace Message
         uuids::uuid m_uuid;
         Type m_type;
         int m_originId;
+        int m_originTerm;
 
     public:
         Message(Type type, int originId);
