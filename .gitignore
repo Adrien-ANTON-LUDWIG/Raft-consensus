@@ -36,3 +36,5 @@
 ## Executable
 my_aws_s3
 
+# Editors
+.vscode/
