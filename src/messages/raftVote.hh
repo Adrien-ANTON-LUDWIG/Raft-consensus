@@ -8,7 +8,7 @@ namespace Message
     private:
         int m_serverId;
     public:
-        RaftVote(int serverId);
+        RaftVote(int serverId, int originId);
         RaftVote(const json& jsonStr);
 
         virtual json toJSON() const override;

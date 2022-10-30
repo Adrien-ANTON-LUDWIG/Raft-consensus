@@ -2,7 +2,7 @@
 
 namespace Message
 {
-    Message::Message(const Message::Type type) {
+    Message::Message(Message::Type type, int originId) {
         std::random_device rd;
         auto seed_data = std::array<int, std::mt19937::state_size> {};
         std::generate(std::begin(seed_data), std::end(seed_data), std::ref(rd));
@@ -12,12 +12,14 @@ namespace Message
 
         m_uuid = gen();
         m_type = type;
+        m_originId = originId;
     }
 
     Message::Message(const json& data) {
         std::string uuidStr = data["uuid"];
         m_uuid = uuids::uuid::from_string(uuidStr).value();
         m_type = data["type"];
+        m_originId = data["origin"];
     }
 
     Message::Type Message::getType() const {
@@ -32,6 +34,7 @@ namespace Message
         json data;
         data["uuid"] = UUIDToStr();
         data["type"] = m_type;
+        data["origin"] = m_originId;
 
         return data;
     }

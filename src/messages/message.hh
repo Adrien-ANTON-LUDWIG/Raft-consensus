@@ -24,9 +24,10 @@ namespace Message
     private:
         uuids::uuid m_uuid;
         Type m_type;
+        int m_originId;
 
     public:
-        Message(const Type type);
+        Message(Type type, int originId);
         Message(const json& data);
 
         Type getType() const;
