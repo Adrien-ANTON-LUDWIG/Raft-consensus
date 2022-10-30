@@ -6,7 +6,7 @@ void Server::anyStateUpdate() {
 
 void Server::followerUpdate() {
   if (current_time - start_time >= election_timeout) {
-    if (request != MPI_REQUEST_NULL) MPI_Cancel(&request);
+    if (request != MPI_REQUEST_NULL) MPI_Cancel(&request); // TODO Check true behavior
 
     state = CANDIDATE;
     term += 1;
