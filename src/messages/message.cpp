@@ -26,6 +26,10 @@ namespace Message
         return m_type;
     }
 
+    Message::Type Message::getType(const json& data) {
+        return Type(data["type"]);
+    }
+
     std::string Message::UUIDToStr() const {
         return uuids::to_string(m_uuid);
     }

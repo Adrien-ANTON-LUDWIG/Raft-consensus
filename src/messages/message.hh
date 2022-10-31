@@ -35,6 +35,7 @@ namespace Message
         Message(const json& data);
 
         Type getType() const;
+        static Type getType(const json& data);
         std::string UUIDToStr() const;
 
         virtual json toJSON() const;
