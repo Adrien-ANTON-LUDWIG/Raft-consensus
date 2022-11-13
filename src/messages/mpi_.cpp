@@ -35,12 +35,3 @@ std::optional<json> recv() {
 
   return std::optional<json>(messageJson);
 }
-
-void recv_all(std::vector<json> &messages) {
-  std::optional<json> message = recv();
-
-  while (message.has_value()) {
-    messages.push_back(message.value());
-    message = recv();
-  }
-}
