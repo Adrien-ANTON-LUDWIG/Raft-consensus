@@ -13,14 +13,7 @@ void send_all(Message::Message &message, int source_rank, int world_size) {
   }
 }
 
-std::optional<json> recv() {
-  int request_completed;
-  MPI_Status status;
-  MPI_Iprobe(MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &request_completed,
-             &status);
-
-  if (!request_completed) return std::nullopt;
-
+json recv(MPI_Status &status) {
   int messageSize;
   MPI_Get_count(&status, MPI_CHAR, &messageSize);
 
@@ -33,5 +26,16 @@ std::optional<json> recv() {
 
   json messageJson = json::parse(messageString);
 
-  return std::optional<json>(messageJson);
+  return messageJson;
+}
+
+std::optional<MPI_Status> checkForMessage() {
+  int request_completed;
+  MPI_Status status;
+  MPI_Iprobe(MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &request_completed,
+             &status);
+
+  if (!request_completed) return std::nullopt;
+
+  return std::optional<MPI_Status>(status);
 }
