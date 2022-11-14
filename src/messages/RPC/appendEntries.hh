@@ -5,7 +5,7 @@
 
 #include "../message.hh"
 
-namespace Message::RPC
+namespace MessageNS::RPC
 {
     class AppendEntries : public Message {
     private:
@@ -38,4 +38,4 @@ namespace Message::RPC
 
         virtual json toJSON() const override;
     };
-} // namespace Message::RPC
+} // namespace MessageNS::RPC

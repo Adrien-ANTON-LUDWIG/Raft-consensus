@@ -2,7 +2,7 @@
 
 #include "message.hh"
 
-namespace Message
+namespace MessageNS
 {
     class Status : public Message {
     private:
@@ -19,4 +19,4 @@ namespace Message
 
         virtual json toJSON() const override;
     };
-} // namespace Message
+} // namespace MessageNS

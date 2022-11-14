@@ -1,6 +1,6 @@
 #include "vote.hh"
 
-namespace Message::RPC
+namespace MessageNS::RPC
 {
     Vote::Vote(int term, bool granted,
                      int originId) : Message(Type::RPC_VOTE, originId) {
@@ -28,4 +28,4 @@ namespace Message::RPC
 
         return data;
     }
-} // namespace Message::RPC
+} // namespace MessageNS::RPC

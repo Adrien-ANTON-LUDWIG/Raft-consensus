@@ -9,7 +9,9 @@
 // TODO
 #define TO_IMPLEMENT 42
 
-inline void dropMessage(const Message::Message &message) {
+using namespace MessageNS;
+
+inline void dropMessage(const Message &message) {
   // TODO : log
   // TODO override << for Message
   std::cout << "Message dropped. UUID: " << message.UUIDToStr()
@@ -58,7 +60,7 @@ void Server::followerUpdate() {
   std::optional<MPI_Status> status = checkForMessage();
 
   if (status.has_value()) {
-    if (status->MPI_TAG == Message::Message::RPC_REQUEST_VOTE)
+    if (status->MPI_TAG == Message::RPC_REQUEST_VOTE)
       handleRequestVote(recv(*status));
     else if (status->MPI_TAG == Message::Message::RPC_APPEND_ENTRIES)
       handleAppendEntries(recv(*status));
@@ -87,7 +89,7 @@ void Server::becomeCandidate() {
   election_timeout = std::chrono::milliseconds(std::rand() % 150 + 150);
 
   // Send RequestVote RPCs to all other servers
-  Message::RPC::RequestVote requestVote(term, id);
+  RPC::RequestVote requestVote(term, id);
   sendAll(requestVote, id, world_size);
 }
 
@@ -137,7 +139,7 @@ void Server::leaderUpdate() {
 }
 
 void Server::sendHeartbeat() {
-  Message::RPC::AppendEntries heartbeat(term, id, TO_IMPLEMENT, TO_IMPLEMENT,
+  RPC::AppendEntries heartbeat(term, id, TO_IMPLEMENT, TO_IMPLEMENT,
                                         TO_IMPLEMENT);
   sendAll(heartbeat, id, world_size);
 }

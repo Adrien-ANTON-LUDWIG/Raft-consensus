@@ -1,6 +1,6 @@
 #include "appendEntries.hh"
 
-namespace Message::RPC {
+namespace MessageNS::RPC {
 AppendEntries::AppendEntries(int term, int leaderId, int prevLogIndex,
                              int prevLogTerm,
                              const std::vector<std::string>& entries,
@@ -68,4 +68,4 @@ json AppendEntries::toJSON() const {
 
   return data;
 }
-}  // namespace Message::RPC
+}  // namespace MessageNS::RPC

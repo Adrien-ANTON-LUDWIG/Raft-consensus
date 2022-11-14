@@ -2,7 +2,7 @@
 
 #include "../message.hh"
 
-namespace Message::RPC
+namespace MessageNS::RPC
 {
     class RequestVote : public Message {
     private:
@@ -19,4 +19,4 @@ namespace Message::RPC
 
         virtual json toJSON() const override;
     };
-} // namespace Message
+} // namespace MessageNS

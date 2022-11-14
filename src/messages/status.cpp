@@ -1,6 +1,6 @@
 #include "status.hh"
 
-namespace Message
+namespace MessageNS
 {
     Status::Status(int term, bool success, int originId) : Message(Type::STATUS, originId) {
         m_term = term;
@@ -28,4 +28,4 @@ namespace Message
 
         return data;
     }
-} // namespace Message
+} // namespace MessageNS

@@ -1,6 +1,6 @@
 #include "message.hh"
 
-namespace Message
+namespace MessageNS
 {
     Message::Message(Message::Type type, int originId) {
         std::random_device rd;
@@ -42,4 +42,4 @@ namespace Message
 
         return data;
     }
-} // namespace Message
+} // namespace MessageNS

@@ -6,7 +6,7 @@
 
 using json = nlohmann::json;
 
-namespace Message
+namespace MessageNS
 {
     class Message {
     public:
@@ -40,4 +40,4 @@ namespace Message
 
         virtual json toJSON() const;
     };
-}  // namespace Message
+}  // namespace MessageNS

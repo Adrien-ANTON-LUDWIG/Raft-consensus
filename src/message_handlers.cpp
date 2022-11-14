@@ -5,8 +5,10 @@
 #include "messages/status.hh"
 #include "server.h"
 
+using namespace MessageNS;
+
 void Server::handleRequestVote(const json &json) {
-  Message::RPC::RequestVote request(json);
+  RPC::RequestVote request(json);
   bool grantVote = false;
 
   if (request.getTerm() > this->term &&
@@ -15,12 +17,12 @@ void Server::handleRequestVote(const json &json) {
     this->voted_for = request.getCandidate();
   }
 
-  Message::RPC::Vote vote(this->term, grantVote, this->id);
+  RPC::Vote vote(this->term, grantVote, this->id);
   send(vote, request.getCandidate());
 }
 
 void Server::handleVote(const json &json) {
-  Message::RPC::Vote vote(json);
+  RPC::Vote vote(json);
 
   if (vote.isGranted()) {
     this->vote_count++;
@@ -28,10 +30,10 @@ void Server::handleVote(const json &json) {
 }
 
 void Server::handleAppendEntries(const json &json) {
-  Message::RPC::AppendEntries log(json);
+  RPC::AppendEntries log(json);
 
   if (log.getTerm() < this->term) {
-    Message::Status status(this->term, false, this->id);
+    Status status(this->term, false, this->id);
     send(status, log.getLeader());
   }
 
