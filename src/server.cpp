@@ -69,6 +69,7 @@ void Server::followerUpdate() {
 // ELECTION
 void Server::becomeCandidate() {
   // START ELECTION
+  spdlog::debug("{}: Become candidate", id);
 
   // Increment current term
   term++;
@@ -94,7 +95,9 @@ void Server::candidateUpdate() {
   std::optional<MPI_Status> status = checkForMessage();
 
   if (status.has_value()) {
-    if (status->MPI_TAG == Message::Message::RPC_APPEND_ENTRIES)
+    if (status->MPI_TAG == Message::RPC_VOTE)
+      handleVote(recv(*status));
+    else if (status->MPI_TAG == Message::RPC_APPEND_ENTRIES)
       handleAppendEntries(recv(*status));
     else  // non expected or invalid message -> drop
       dropMessage(recv(*status));
@@ -106,6 +109,7 @@ void Server::candidateUpdate() {
 
 // LEADER
 void Server::becomeLeader() {
+  spdlog::info("{}: Become leader", id);
   // Upon election: send heartbeat to each server
   sendHeartbeat();
 }
