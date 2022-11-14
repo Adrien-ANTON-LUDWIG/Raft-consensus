@@ -28,7 +28,6 @@ namespace MessageNS
         uuids::uuid m_uuid;
         Type m_type;
         int m_originId;
-        int m_originTerm;
 
     public:
         Message(Type type, int originId);
