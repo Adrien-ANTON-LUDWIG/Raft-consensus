@@ -4,11 +4,14 @@
 #include "messages/mpi_wrappers.hh"
 #include "messages/status.hh"
 #include "server.h"
+#include "spdlog/spdlog.h"
 
 using namespace MessageNS;
 
 void Server::handleRequestVote(const json &json) {
   RPC::RequestVote request(json);
+  spdlog::info("{}: Received request vote from {}", id, request.getCandidate());
+
   bool grantVote = false;
 
   if (request.getTerm() > this->term &&
@@ -26,11 +29,16 @@ void Server::handleVote(const json &json) {
 
   if (vote.isGranted()) {
     this->vote_count++;
+    spdlog::info("{}: Vote granted by {}", id, vote.getOriginId());
+  }
+  else {
+    spdlog::info("{}: Vote denied by {}", id, vote.getOriginId());
   }
 }
 
 void Server::handleAppendEntries(const json &json) {
   RPC::AppendEntries log(json);
+  spdlog::info("{}: Received append entries from {}", id, log.getLeader());
 
   if (log.getTerm() < this->term) {
     Status status(this->term, false, this->id);
