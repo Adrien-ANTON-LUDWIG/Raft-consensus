@@ -1,5 +1,8 @@
 #include "server.h"
 
+#include "messages/RPC/appendEntries.hh"
+#include "messages/RPC/requestVote.hh"
+#include "messages/RPC/vote.hh"
 #include "messages/mpi_wrappers.hh"
 #include "spdlog/spdlog.h"
 
@@ -56,12 +59,12 @@ void Server::followerUpdate() {
 
   if (status.has_value()) {
     if (status->MPI_TAG == Message::Message::RPC_REQUEST_VOTE)
-      handlerRequestVote({recv(*status)});
+      handleRequestVote(recv(*status));
     else if (status->MPI_TAG == Message::Message::RPC_APPEND_ENTRIES)
-      handlerAppendEntried({recv(*status)});
+      handleAppendEntries(recv(*status));
     // else if CMD from client -> reject and redirect to leader
     else  // non expected or invalid message -> drop
-      handlerDropMessage({recv(*status)});
+      dropMessage(recv(*status));
   }
 
   // Election timeout : convert to candidate
@@ -84,8 +87,8 @@ void Server::becomeCandidate() {
   election_timeout = std::chrono::milliseconds(std::rand() % 150 + 150);
 
   // Send RequestVote RPCs to all other servers
-  Message::RPC::RequestVote requestVote(term, id)
-      sendAll(requestVote, id, world_size);
+  Message::RPC::RequestVote requestVote(term, id);
+  sendAll(requestVote, id, world_size);
 }
 
 void Server::candidateUpdate() {
@@ -96,10 +99,10 @@ void Server::candidateUpdate() {
   std::optional<MPI_Status> status = checkForMessage();
 
   if (status.has_value()) {
-    if (status->MPI_TAG == Message::RPC_APPEND_ENTRIES)
-      handlerAppendEntried({recv(status)});
+    if (status->MPI_TAG == Message::Message::RPC_APPEND_ENTRIES)
+      handleAppendEntries(recv(*status));
     else  // non expected or invalid message -> drop
-      dropMessage({recv(status)});
+      dropMessage(recv(*status));
   }
 
   // • If election timeout elapses: start new election
