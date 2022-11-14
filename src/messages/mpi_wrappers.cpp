@@ -6,7 +6,7 @@ void send(Message::Message &message, int destination_rank) {
            destination_rank, message.getType(), MPI_COMM_WORLD);
 }
 
-void send_all(Message::Message &message, int source_rank, int world_size) {
+void sendAll(Message::Message &message, int source_rank, int world_size) {
   for (int rank = 0; rank < world_size; rank++) {
     if (rank == source_rank) continue;
     send(message, rank);

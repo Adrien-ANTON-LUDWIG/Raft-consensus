@@ -5,6 +5,6 @@
 #include "message.hh"
 
 void send(Message::Message &message, int destination_rank);
-void send_all(Message::Message &message, int source_rank, int world_size);
+void sendAll(Message::Message &message, int source_rank, int world_size);
 json recv(MPI_Status &status);
 std::optional<MPI_Status> checkForMessage();

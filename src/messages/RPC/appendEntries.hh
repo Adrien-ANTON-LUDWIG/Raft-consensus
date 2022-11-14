@@ -18,11 +18,10 @@ namespace Message::RPC
     
     public:
         AppendEntries(int term, int leaderId, int prevLogIndex, int prevLogTerm,
-                      const std::vector<std::string>& entries, int leaderCommit,
-                      int originId);
+                      const std::vector<std::string>& entries, int leaderCommit);
 
         AppendEntries(int term, int leaderId, int prevLogIndex, int prevLogTerm,
-                      int leaderCommit, int originId);
+                      int leaderCommit);
 
         AppendEntries(const json& data);
 

@@ -18,15 +18,23 @@ class Server {
  public:
   Server(int id, int world_size);
 
-  void anyStateUpdate();
-  void followerUpdate();
-  void candidateUpdate();
-  void leaderUpdate();
-  void becomeFollower();
-  void becomeCandidate();
-  void becomeLeader();
+  // GENERAL UPDATE
   void update();
 
+  // FOLLOWER
+  void becomeFollower();
+  void followerUpdate();
+
+  // ELECTION
+  void becomeCandidate();
+  void candidateUpdate();
+
+  // LEADER
+  void becomeLeader();
+  void leaderUpdate();
+  void sendHeartbeat();
+
+  // RPC HANDLERS
   void handleRequestVote(const json& json);
   void handleVote(const json& json);
   void handleAppendEntries(const json& json);
