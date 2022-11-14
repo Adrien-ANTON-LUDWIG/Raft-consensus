@@ -33,9 +33,10 @@ namespace MessageNS
         Message(Type type, int originId);
         Message(const json& data);
 
+        std::string UUIDToStr() const;
         Type getType() const;
         static Type getType(const json& data);
-        std::string UUIDToStr() const;
+        int getOriginId() const;
 
         virtual json toJSON() const;
     };

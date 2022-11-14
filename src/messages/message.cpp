@@ -22,6 +22,10 @@ namespace MessageNS
         m_originId = data["origin"];
     }
 
+    std::string Message::UUIDToStr() const {
+        return uuids::to_string(m_uuid);
+    }
+
     Message::Type Message::getType() const {
         return m_type;
     }
@@ -30,8 +34,8 @@ namespace MessageNS
         return Type(data["type"]);
     }
 
-    std::string Message::UUIDToStr() const {
-        return uuids::to_string(m_uuid);
+    int Message::getOriginId() const {
+        return m_originId;
     }
 
     json Message::toJSON() const {
