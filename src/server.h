@@ -25,14 +25,21 @@ class Server {
               << std::endl;
   }
 
-  void anyStateUpdate();
-  void followerUpdate();
-  void candidateUpdate();
-  void leaderUpdate();
-  void becomeFollower();
-  void becomeCandidate();
-  void becomeLeader();
+  // GENERAL UPDATE
   void update();
+
+  // FOLLOWER
+  void becomeFollower();
+  void followerUpdate();
+
+  // ELECTION
+  void becomeCandidate();
+  void candidateUpdate();
+
+  // LEADER
+  void becomeLeader();
+  void leaderUpdate();
+  void sendHeartbeat();
 
   /**
    * Variables
