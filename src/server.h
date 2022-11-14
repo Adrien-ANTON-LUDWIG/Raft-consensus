@@ -8,6 +8,10 @@
 
 #include "messages/mpi_wrappers.hh"
 
+#include "json.hpp"
+
+using json = nlohmann::json;
+
 enum STATE { FOLLOWER, CANDIDATE, LEADER };
 
 class Server {
@@ -33,6 +37,10 @@ class Server {
   void becomeCandidate();
   void becomeLeader();
   void update();
+
+  void handleRequestVote(const json& json);
+  void handleVote(const json& json);
+  void handleAppendEntries(const json& json);
 
   /**
    * Variables
