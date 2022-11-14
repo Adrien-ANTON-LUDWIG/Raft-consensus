@@ -41,3 +41,6 @@ my_aws_s3
 
 # Resources (PDFs)
 resources
+
+# Libs
+!libs/*.a

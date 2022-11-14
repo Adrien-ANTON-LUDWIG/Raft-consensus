@@ -1,6 +1,19 @@
 #include "server.h"
 
-#include "messages/mpi_.hh"
+#include "messages/mpi_wrappers.hh"
+#include "spdlog/spdlog.h"
+
+Server::Server(int id, int world_size) {
+  this->id = id;
+  this->world_size = world_size;
+
+  std::srand(id);
+  election_timeout = std::chrono::milliseconds(std::rand() % 150 + 150);
+  heartbeat_timeout = std::chrono::milliseconds(50);
+  start_time = std::chrono::system_clock::now();
+
+  spdlog::info("{}: Election timeout: {}", id, election_timeout.count());
+}
 
 void Server::anyStateUpdate() {
   // TODO : Refer to Raft paper > Rules for Servers > All servers

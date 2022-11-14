@@ -16,18 +16,7 @@ enum STATE { FOLLOWER, CANDIDATE, LEADER };
 
 class Server {
  public:
-  Server(int id, int world_size) {
-    this->id = id;
-    this->world_size = world_size;
-
-    std::srand(id);
-    election_timeout = std::chrono::milliseconds(std::rand() % 150 + 150);
-    heartbeat_timeout = std::chrono::milliseconds(50);
-    start_time = std::chrono::system_clock::now();
-
-    std::cout << id << ": Election timeout: " << election_timeout.count()
-              << std::endl;
-  }
+  Server(int id, int world_size);
 
   void anyStateUpdate();
   void followerUpdate();

@@ -11,7 +11,7 @@ CC := mpic++
 CFLAGS := -std=c++17 -pedantic -Werror -Wall -Wextra -g
 CFLAGS=
 #LDFLAGS := -fsanitize=address
-LDFLAGS=
+LDFLAGS := -Llibs -lspdlog
 INCLUDES := -Iincludes
 
 all: $(TARGET)
