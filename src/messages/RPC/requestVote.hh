@@ -4,7 +4,7 @@
 
 namespace Message::RPC
 {
-    class RequestVote : Message {
+    class RequestVote : public Message {
     private:
         int m_term;
         int m_candidateId;

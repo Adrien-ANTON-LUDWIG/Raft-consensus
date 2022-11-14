@@ -4,7 +4,7 @@
 
 namespace Message
 {
-    class Status : Message {
+    class Status : public Message {
     private:
         int m_term;
         bool m_success;

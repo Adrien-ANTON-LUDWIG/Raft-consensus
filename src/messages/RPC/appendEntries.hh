@@ -7,7 +7,7 @@
 
 namespace Message::RPC
 {
-    class AppendEntries : Message {
+    class AppendEntries : public Message {
     private:
         int m_term;
         int m_leaderId;

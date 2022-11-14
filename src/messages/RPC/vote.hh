@@ -4,7 +4,7 @@
 
 namespace Message::RPC
 {
-    class Vote : Message {
+    class Vote : public Message {
     private:
         int m_term;
         bool m_granted;
