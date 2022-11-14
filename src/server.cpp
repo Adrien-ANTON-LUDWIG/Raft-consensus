@@ -12,10 +12,7 @@
 using namespace MessageNS;
 
 inline void dropMessage(const Message &message) {
-  // TODO : log
-  // TODO override << for Message
-  std::cout << "Message dropped. UUID: " << message.UUIDToStr()
-            << ", Type: " << message.getType() << std::endl;
+  spdlog::info("Dropping message {}", message.toJSON().dump());
 }
 
 Server::Server(int id, int world_size) {
