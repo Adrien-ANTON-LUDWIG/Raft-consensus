@@ -11,10 +11,6 @@
 
 using namespace MessageNS;
 
-inline void dropMessage(const Message &message) {
-  spdlog::info("Dropping message {}", message.toJSON().dump());
-}
-
 Server::Server(int id, int world_size) {
   this->id = id;
   this->world_size = world_size;
@@ -139,4 +135,9 @@ void Server::sendHeartbeat() {
   RPC::AppendEntries heartbeat(term, id, TO_IMPLEMENT, TO_IMPLEMENT,
                                         TO_IMPLEMENT);
   sendAll(heartbeat, id, world_size);
+}
+
+// UTILS
+void Server::dropMessage(const Message &message) {
+  spdlog::info("{}: Dropping message {}", id, message.toJSON().dump());
 }
