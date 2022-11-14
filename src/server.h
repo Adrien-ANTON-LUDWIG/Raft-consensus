@@ -4,6 +4,9 @@
 
 #include <chrono>
 #include <iostream>
+#include <queue>
+
+#include "messages/mpi_wrappers.hh"
 
 enum STATE { FOLLOWER, CANDIDATE, LEADER };
 
@@ -26,6 +29,9 @@ class Server {
   void followerUpdate();
   void candidateUpdate();
   void leaderUpdate();
+  void becomeFollower();
+  void becomeCandidate();
+  void becomeLeader();
   void update();
 
   /**
@@ -35,14 +41,20 @@ class Server {
   int id;  // Corresponding to MPI rank
 
   STATE state = FOLLOWER;
+
   int term = 0;
-  int vote_count = -1;
+
+  // Election
+  // Id of the server this server voted for. Can be himself if candidate.
   int voted_for = -1;
+  // If candidate, number of vote received.
+  int vote_count = -1;
 
   // MPI management
   int world_size;
-  int message;
-  MPI_Request request = MPI_REQUEST_NULL;
+
+  // Clients
+  std::queue<json> commands;
 
   // Time management
   std::chrono::milliseconds election_timeout;
