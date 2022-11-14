@@ -5,8 +5,16 @@
 #include <thread>
 
 #include "server.h"
+#include "spdlog/spdlog.h"
 
 int main(int argc, char **argv) {
+
+  // Log setup
+  spdlog::set_level(spdlog::level::debug);
+  spdlog::set_pattern("[%H:%M:%S.%e] [%^%l%$] %v");
+
+  /////////////////////////////////////////////////////////////////
+
   // Initialize MPI
   // This must always be called before any other MPI functions
   MPI_Init(&argc, &argv);
