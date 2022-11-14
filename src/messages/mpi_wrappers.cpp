@@ -1,4 +1,4 @@
-#include "mpi_.hh"
+#include "mpi_wrappers.hh"
 
 void send(Message::Message &message, int destination_rank) {
   std::string messageString = message.toJSON().dump();
