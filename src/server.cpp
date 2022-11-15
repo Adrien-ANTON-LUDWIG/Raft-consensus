@@ -174,3 +174,10 @@ void Server::sendHeartbeat() {
 void Server::dropMessage(const Message &message) {
   spdlog::info("{}: Dropping message {}", id, message.toJSON().dump());
 }
+
+void Server::checkTerm(int term) {
+  if (term > this->term) {
+    this->term = term;
+    becomeFollower();
+  }
+}

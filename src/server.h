@@ -41,6 +41,7 @@ class Server {
 
   // UTILS
   void dropMessage(const MessageNS::Message& message);
+  void checkTerm(int term);
 
   /**
    * Variables

@@ -11,10 +11,11 @@ using namespace MessageNS;
 void Server::handleRequestVote(const json &json) {
   RPC::RequestVote request(json);
   spdlog::info("{}: Received request vote from {}", id, request.getCandidate());
+  checkTerm(request.getTerm());
 
   bool grantVote = false;
 
-  if (request.getTerm() > this->term &&
+  if (request.getTerm() >= this->term &&
       (this->voted_for == -1 || this->voted_for == request.getCandidate())) {
     grantVote = true;
     this->voted_for = request.getCandidate();
@@ -29,6 +30,13 @@ void Server::handleRequestVote(const json &json) {
 
 void Server::handleVote(const json &json) {
   RPC::Vote vote(json);
+  checkTerm(vote.getTerm());
+
+  // Check state after checkTerm
+  if (state != CANDIDATE) {
+    spdlog::info("{}: Received vote but not candidate", id);
+    return;
+  }
 
   if (vote.isGranted()) {
     this->vote_count++;
