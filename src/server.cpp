@@ -125,13 +125,25 @@ void Server::becomeLeader() {
 
   // Update state
   state = STATE::LEADER;
-  exit(42);
 
   // Upon election: send heartbeat to each server
   sendHeartbeat();
 }
 
 void Server::leaderUpdate() {
+
+  // Check for new messages
+  std::optional<MPI_Status> status = checkForMessage();
+
+  if (status.has_value()) {
+    if (status->MPI_TAG == Message::RPC_REQUEST_VOTE)
+      handleRequestVote(recv(*status));
+    else if (status->MPI_TAG == Message::RPC_APPEND_ENTRIES)
+      handleAppendEntries(recv(*status));
+    else  // non expected or invalid message -> drop
+      dropMessage(recv(*status));
+  }
+
   // If command received from client: append entry to local log,
   // respond after entry applied to state machine (§5.3)
 
