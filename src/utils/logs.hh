@@ -33,7 +33,7 @@ class Logs {
 
   void addLog(int term, const json &command);
   void commitLog(int index);
-  void applyLog(int index);
+  void apply();
 
   Log getLog(int index);
   int getCommitIndex();

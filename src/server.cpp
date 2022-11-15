@@ -28,9 +28,8 @@ void Server::update() {
   // Update the current_time
   current_time = std::chrono::system_clock::now();
 
-  // TODO
-  // If commitIndex > lastApplied: increment lastApplied, apply log[lastApplied]
-  // to state machine
+  // Apply committed logs
+  m_logs.apply();
 
   switch (state) {
     case LEADER:
