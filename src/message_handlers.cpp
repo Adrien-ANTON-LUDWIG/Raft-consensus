@@ -18,6 +18,9 @@ void Server::handleRequestVote(const json &json) {
       (this->voted_for == -1 || this->voted_for == request.getCandidate())) {
     grantVote = true;
     this->voted_for = request.getCandidate();
+    
+    // Reset election timeout
+    start_time = std::chrono::system_clock::now();
   }
 
   RPC::Vote vote(this->term, grantVote, this->id);
