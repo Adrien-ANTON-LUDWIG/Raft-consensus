@@ -21,6 +21,6 @@ void Server::handleLoad(const json& json) {
   uuids::uuid fileUID = gen();
 
   CMD::LoadResponse response(fileUID, TO_IMPLEMENT, true,
-                             this->id);  // TODO replace true by success check
+                             m_id);  // TODO replace true by success check
   send(response, load.getOriginId());
 }

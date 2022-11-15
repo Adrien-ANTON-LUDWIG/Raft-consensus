@@ -12,27 +12,27 @@
 using namespace MessageNS;
 
 Server::Server(int id, int world_size) {
-  this->id = id;
-  this->world_size = world_size;
+  m_id = id;
+  m_world_size = world_size;
 
   std::srand(id);
-  election_timeout = std::chrono::milliseconds(std::rand() % 150 + 150);
-  heartbeat_timeout = std::chrono::milliseconds(50);
-  start_time = std::chrono::system_clock::now();
+  m_election_timeout = std::chrono::milliseconds(std::rand() % 150 + 150);
+  m_heartbeat_timeout = std::chrono::milliseconds(50);
+  m_start_time = std::chrono::system_clock::now();
 
-  spdlog::info("{}: Election timeout: {}", id, election_timeout.count());
+  spdlog::info("{}: Election timeout: {}", m_id, m_election_timeout.count());
 }
 
 // GENERAL UPDATE
 void Server::update() {
   // Update the current_time
-  current_time = std::chrono::system_clock::now();
+  m_current_time = std::chrono::system_clock::now();
 
   // TODO
   // If commitIndex > lastApplied: increment lastApplied, apply log[lastApplied]
   // to state machine
 
-  switch (state) {
+  switch (m_state) {
     case LEADER:
       leaderUpdate();
       break;
@@ -48,16 +48,16 @@ void Server::update() {
 // FOLLOWER
 void Server::becomeFollower() { 
 
-  if (state != FOLLOWER) {
-    spdlog::info("{}: Become follower", id);
+  if (m_state != FOLLOWER) {
+    spdlog::info("{}: Become follower", m_id);
 
     // Update state
-    state = FOLLOWER;
+    m_state = FOLLOWER;
   }
 
   // Reset vote attributes
-  voted_for = -1;
-  vote_count = 0;
+  m_voted_for = -1;
+  m_vote_count = 0;
 }
 
 void Server::followerUpdate() {
@@ -75,36 +75,36 @@ void Server::followerUpdate() {
   }
 
   // Election timeout : convert to candidate
-  if (current_time - start_time >= election_timeout) return becomeCandidate();
+  if (m_current_time - m_start_time >= m_election_timeout) return becomeCandidate();
 }
 
 // ELECTION
 void Server::becomeCandidate() {
   // START ELECTION
-  spdlog::info("{}: Become candidate", id);
+  spdlog::info("{}: Become candidate", m_id);
 
   // Update state
-  state = STATE::CANDIDATE;
+  m_state = STATE::CANDIDATE;
 
   // Increment current term
-  term++;
+  m_term++;
 
   // Vote for self
-  voted_for = id;
-  vote_count = 1;
+  m_voted_for = m_id;
+  m_vote_count = 1;
 
   // Reset election timer
-  start_time = std::chrono::system_clock::now();
-  election_timeout = std::chrono::milliseconds(std::rand() % 150 + 150);
+  m_start_time = std::chrono::system_clock::now();
+  m_election_timeout = std::chrono::milliseconds(std::rand() % 150 + 150);
 
   // Send RequestVote RPCs to all other servers
-  RPC::RequestVote requestVote(term, id);
-  sendAll(requestVote, id, world_size);
+  RPC::RequestVote requestVote(m_term, m_id);
+  sendAll(requestVote, m_id, m_world_size);
 }
 
 void Server::candidateUpdate() {
   // If votes received from majority of servers: become leader
-  if (vote_count > world_size / 2) becomeLeader();
+  if (m_vote_count > m_world_size / 2) becomeLeader();
 
   // If AppendEntries RPC received from new leader: convert to follower
   std::optional<MPI_Status> status = checkForMessage();
@@ -119,15 +119,15 @@ void Server::candidateUpdate() {
   }
 
   // • If election timeout elapses: start new election
-  if (current_time - start_time >= election_timeout) becomeCandidate();
+  if (m_current_time - m_start_time >= m_election_timeout) becomeCandidate();
 }
 
 // LEADER
 void Server::becomeLeader() {
-  spdlog::info("{}: Become leader", id);
+  spdlog::info("{}: Become leader", m_id);
 
   // Update state
-  state = STATE::LEADER;
+  m_state = STATE::LEADER;
 
   // Upon election: send heartbeat to each server
   sendHeartbeat();
@@ -164,23 +164,23 @@ void Server::leaderUpdate() {
 
   // Send heartbeat to each server : repeat during idle periods to prevent
   // election timeouts
-  if (current_time - start_time >= heartbeat_timeout) sendHeartbeat();
+  if (m_current_time - m_start_time >= m_heartbeat_timeout) sendHeartbeat();
 }
 
 void Server::sendHeartbeat() {
-  RPC::AppendEntries heartbeat(term, id, TO_IMPLEMENT, TO_IMPLEMENT,
+  RPC::AppendEntries heartbeat(m_term, m_id, TO_IMPLEMENT, TO_IMPLEMENT,
                                         TO_IMPLEMENT);
-  sendAll(heartbeat, id, world_size);
+  sendAll(heartbeat, m_id, m_world_size);
 }
 
 // UTILS
 void Server::dropMessage(const Message &message) {
-  spdlog::info("{}: Dropping message {}", id, message.toJSON().dump());
+  spdlog::info("{}: Dropping message {}", m_id, message.toJSON().dump());
 }
 
 void Server::checkTerm(int term) {
-  if (term > this->term) {
-    this->term = term;
+  if (term > m_term) {
+    m_term = term;
     becomeFollower();
   }
 }

@@ -6,15 +6,39 @@
 #include <iostream>
 #include <queue>
 
-#include "messages/mpi_wrappers.hh"
-
 #include "json.hpp"
+#include "messages/mpi_wrappers.hh"
 
 using json = nlohmann::json;
 
 enum STATE { FOLLOWER, CANDIDATE, LEADER };
 
 class Server {
+ private:
+  int m_id;  // Corresponding to MPI rank
+
+  STATE m_state = FOLLOWER;
+
+  int m_term = 0;
+
+  // Election
+  // Id of the server this server voted for. Can be himself if candidate.
+  int m_voted_for = -1;
+  // If candidate, number of vote received.
+  int m_vote_count = 0;
+
+  // MPI management
+  int m_world_size;
+
+  // Clients
+  std::queue<json> m_commands;
+
+  // Time management
+  std::chrono::milliseconds m_election_timeout;
+  std::chrono::milliseconds m_heartbeat_timeout;
+  std::chrono::_V2::system_clock::time_point m_start_time;
+  std::chrono::_V2::system_clock::time_point m_current_time;
+
  public:
   Server(int id, int world_size);
 
@@ -45,32 +69,4 @@ class Server {
   // UTILS
   void dropMessage(const MessageNS::Message& message);
   void checkTerm(int term);
-
-  /**
-   * Variables
-   */
-
-  int id;  // Corresponding to MPI rank
-
-  STATE state = FOLLOWER;
-
-  int term = 0;
-
-  // Election
-  // Id of the server this server voted for. Can be himself if candidate.
-  int voted_for = -1;
-  // If candidate, number of vote received.
-  int vote_count = 0;
-
-  // MPI management
-  int world_size;
-
-  // Clients
-  std::queue<json> commands;
-
-  // Time management
-  std::chrono::milliseconds election_timeout;
-  std::chrono::milliseconds heartbeat_timeout;
-  std::chrono::_V2::system_clock::time_point start_time;
-  std::chrono::_V2::system_clock::time_point current_time;
 };
