@@ -7,7 +7,7 @@ LoadResponse::LoadResponse(const uuids::uuid& fileUID, int leaderId,
   m_fileUID = fileUID;
 }
 
-LoadResponse::LoadResponse(const json& data) : LoadResponse(data) {
+LoadResponse::LoadResponse(const json& data) : ResponseToClient(data) {
   std::string uuidStr = data["fileUID"];
   m_fileUID = uuids::uuid::from_string(uuidStr).value();
 }
