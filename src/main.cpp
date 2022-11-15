@@ -1,9 +1,11 @@
 #include <mpi.h>
 
 #include <chrono>
+#include <exception>
 #include <iostream>
 #include <thread>
 
+#include "client.hh"
 #include "server.h"
 #include "spdlog/spdlog.h"
 
@@ -14,6 +16,22 @@ int main(int argc, char **argv) {
   spdlog::set_pattern("[%H:%M:%S.%e] [%^%l%$] %v");
 
   /////////////////////////////////////////////////////////////////
+
+  if (argc != 3) {
+    std::cerr << "Invalid argument count. Received " << argc - 1 << ", expected 2." << std::endl;
+    return 1;
+  }
+  
+  int client_count;
+  int server_count;
+  try {
+    client_count = std::stoi(argv[1]);
+    server_count = std::stoi(argv[2]);
+  }
+  catch (std::exception e) {
+    std::cerr << "Invalid arguments." << std::endl << e.what() << std::endl;
+    return 1;
+  }
 
   // Initialize MPI
   // This must always be called before any other MPI functions
@@ -29,10 +47,20 @@ int main(int argc, char **argv) {
 
   /////////////////////////////////////////////////////////////////
 
-  Server server(my_rank, world_size);
+  if (my_rank < client_count)
+  {
+    Client client(my_rank, world_size);
+    while (true) {
+      client.update();
+    }
+  }
+  else if (my_rank < client_count + server_count)
+  {
+    Server server(my_rank, world_size);
 
-  while (true) {
-    server.update();
+    while (true) {
+      server.update();
+    }
   }
 
   /////////////////////////////////////////////////////////////////
