@@ -17,7 +17,7 @@ int main(int argc, char **argv) {
 
   /////////////////////////////////////////////////////////////////
 
-  if (argc != 3) {
+  if (argc < 3) {
     std::cerr << "Invalid argument count. Received " << argc - 1 << ", expected 2." << std::endl;
     return 1;
   }
@@ -50,6 +50,9 @@ int main(int argc, char **argv) {
   if (my_rank < client_count)
   {
     Client client(my_rank, world_size);
+    if (argc == 4)
+      client.loadCommands(argv[3]);
+
     while (true) {
       client.update();
     }

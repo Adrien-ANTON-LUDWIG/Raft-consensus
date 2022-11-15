@@ -1,5 +1,7 @@
 #include "client.hh"
 
+#include <fstream>
+
 #include "messages/CMD/load.hh"
 #include "messages/mpi_wrappers.hh"
 
@@ -14,8 +16,6 @@ void Client::update() {
   // Send message
   send(message, m_leaderId);
 
-
-
   // Receive response
   std::optional<MPI_Status> status = checkForMessage();
 
@@ -26,4 +26,31 @@ void Client::update() {
     // Save it
     // Send message to the leader
   // }
+}
+
+void Client::loadCommands(const std::string& path) {
+  std::ifstream stream(path);
+  if (stream.is_open()) {
+    std::string line;
+    int client_rank = -1;
+    while (std::getline(stream, line)) {
+      if (line[0] == '-') {
+        client_rank++;
+      }
+      else if (client_rank == m_id)
+      {
+        if (line[0] == '$') {
+          // TODO specials instructions
+          std::string cmd = line.substr(line.find(' '));
+        }
+        else if (line[0] != '#') {
+          size_t commentStart = line.find('#');
+          if (commentStart != std::string::npos)
+            line = line.substr(0, commentStart);
+
+          m_commands.push_back(line);
+        }
+      }
+    }
+  }
 }

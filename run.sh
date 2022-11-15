@@ -3,8 +3,9 @@
 
 client_count=2
 server_count=3
-build_dir="build"
-exec="my_aws_s3"
+build_dir='build'
+exec='my_aws_s3'
+client_commands=''
 
 echo $exec
 
@@ -34,9 +35,14 @@ while [ $# -gt 0 ]; do
             server_count="$1"
             shift
             ;;
+        --commands)
+            shift
+            client_commands="$1"
+            shift
+            ;;
     esac
 done
 
 total_size=$(($client_count + $server_count + 1))
 
-mpiexec -np ${total_size} --oversubscribe ./"${exec}" "${client_count}" "${server_count}"
+mpiexec -np ${total_size} --oversubscribe ./"${exec}" "${client_count}" "${server_count}" "${client_commands}"
