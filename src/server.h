@@ -54,6 +54,7 @@ class Server {
   void handleRequestVote(const json& json);
   void handleVote(const json& json);
   void handleAppendEntries(const json& json);
+  void handleAppendEntriesResponse(const json &json);
 
   // UTILS
   void dropMessage(const MessageNS::Message& message);

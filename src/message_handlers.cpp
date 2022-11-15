@@ -72,3 +72,18 @@ void Server::handleAppendEntries(const json &json) {
     // this->commitIndex = min(log.getLeaderCommit(), index of last new entry)
   }
 }
+
+void Server::handleAppendEntriesResponse(const json &json) {
+  //     • If successful: update nextIndex and matchIndex for
+  //     follower (§5.3)
+
+  //     • If AppendEntries fails because of log inconsistency:
+  //     decrement nextIndex and retry (§5.3)
+
+  // If there exists an N such that N > commitIndex, a majority
+  // of matchIndex[i] ≥ N, and log[N].term == currentTerm:
+  // set commitIndex = N (§5.3, §5.4)
+
+  // Send heartbeat to each server : repeat during idle periods to prevent
+  // election timeouts
+}
