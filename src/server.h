@@ -56,7 +56,7 @@ class Server {
   // Id of the server this server voted for. Can be himself if candidate.
   int voted_for = -1;
   // If candidate, number of vote received.
-  int vote_count = -1;
+  int vote_count = 0;
 
   // MPI management
   int world_size;

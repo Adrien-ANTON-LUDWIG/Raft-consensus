@@ -51,6 +51,10 @@ void Server::becomeFollower() {
 
   // Update state
   state = STATE::FOLLOWER;
+
+  // Reset vote attributes
+  voted_for = -1;
+  vote_count = 0;
 }
 
 void Server::followerUpdate() {
@@ -84,7 +88,7 @@ void Server::becomeCandidate() {
 
   // Vote for self
   voted_for = id;
-  vote_count++;
+  vote_count = 1;
 
   // Reset election timer
   start_time = std::chrono::system_clock::now();
@@ -121,6 +125,7 @@ void Server::becomeLeader() {
 
   // Update state
   state = STATE::LEADER;
+  exit(42);
 
   // Upon election: send heartbeat to each server
   sendHeartbeat();
