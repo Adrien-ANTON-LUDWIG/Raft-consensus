@@ -5,37 +5,36 @@
 
 #include "../message.hh"
 
-namespace MessageNS::RPC
-{
-    class AppendEntries : public Message {
-    private:
-        int m_term;
-        int m_leaderId;
-        int m_prevLogIndex;
-        int m_prevLogTerm;
-        std::vector<std::string> m_entries;
-        int m_leaderCommit;
-    
-    public:
-        AppendEntries(int term, int leaderId, int prevLogIndex, int prevLogTerm,
-                      const std::vector<std::string>& entries, int leaderCommit);
+namespace MessageNS::RPC {
+class AppendEntries : public Message {
+ private:
+  int m_term;
+  int m_leaderId;
+  int m_prevLogIndex;
+  int m_prevLogTerm;
+  std::vector<std::string> m_entries;
+  int m_leaderCommit;
 
-        AppendEntries(int term, int leaderId, int prevLogIndex, int prevLogTerm,
-                      int leaderCommit);
+ public:
+  AppendEntries(int term, int leaderId, int prevLogIndex, int prevLogTerm,
+                const std::vector<std::string>& entries, int leaderCommit);
 
-        AppendEntries(const json& data);
+  AppendEntries(int term, int leaderId, int prevLogIndex, int prevLogTerm,
+                int leaderCommit);
 
-        int getTerm() const;
-        int getLeader() const;
-        int getPreviousLogIdx() const;
-        int getPreviousLogTerm() const;
-        const std::vector<std::string>& getEntries() const;
-        int getLeaderCommit() const;
+  AppendEntries(const json& data);
 
-        bool isHeartbeat() const;
+  int getTerm() const;
+  int getLeader() const;
+  int getPreviousLogIdx() const;
+  int getPreviousLogTerm() const;
+  const std::vector<std::string>& getEntries() const;
+  int getLeaderCommit() const;
 
-        AppendEntries& addEntry(const std::string& entry);
+  bool isHeartbeat() const;
 
-        virtual json toJSON() const override;
-    };
-} // namespace MessageNS::RPC
+  AppendEntries& addEntry(const std::string& entry);
+
+  virtual json toJSON() const override;
+};
+}  // namespace MessageNS::RPC

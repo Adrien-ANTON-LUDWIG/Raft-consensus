@@ -2,21 +2,20 @@
 
 #include "message.hh"
 
-namespace MessageNS
-{
-    class Status : public Message {
-    private:
-        int m_term;
-        bool m_success;
-    
-    public:
-        Status(int term, bool success, int originId);
+namespace MessageNS {
+class Status : public Message {
+ private:
+  int m_term;
+  bool m_success;
 
-        Status(const json& data);
+ public:
+  Status(int term, bool success, int originId);
 
-        int getTerm() const;
-        int isSuccess() const;
+  Status(const json& data);
 
-        virtual json toJSON() const override;
-    };
-} // namespace MessageNS
+  int getTerm() const;
+  int isSuccess() const;
+
+  virtual json toJSON() const override;
+};
+}  // namespace MessageNS

@@ -1,31 +1,27 @@
 #include "requestVote.hh"
 
-namespace MessageNS::RPC
-{
-    RequestVote::RequestVote(int term, int candidateId) : Message(Type::RPC_REQUEST_VOTE, candidateId) {
-        m_term = term;
-        m_candidateId = candidateId;
-    }
+namespace MessageNS::RPC {
+RequestVote::RequestVote(int term, int candidateId)
+    : Message(Type::RPC_REQUEST_VOTE, candidateId) {
+  m_term = term;
+  m_candidateId = candidateId;
+}
 
-    RequestVote::RequestVote(const json& data) : Message(data) {
-        m_term = data["term"];
-        m_candidateId = data["candidate"];
-    }
+RequestVote::RequestVote(const json& data) : Message(data) {
+  m_term = data["term"];
+  m_candidateId = data["candidate"];
+}
 
-    int RequestVote::getTerm() const {
-        return m_term;
-    }
+int RequestVote::getTerm() const { return m_term; }
 
-    int RequestVote::getCandidate() const {
-        return m_candidateId;
-    }
+int RequestVote::getCandidate() const { return m_candidateId; }
 
-    json RequestVote::toJSON() const {
-        json data = Message::toJSON();
+json RequestVote::toJSON() const {
+  json data = Message::toJSON();
 
-        data["term"] = m_term;
-        data["candidate"] = m_candidateId;
+  data["term"] = m_term;
+  data["candidate"] = m_candidateId;
 
-        return data;
-    }
-} // namespace MessageNS::RPC
+  return data;
+}
+}  // namespace MessageNS::RPC

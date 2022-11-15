@@ -1,7 +1,8 @@
 #include "responseToClient.hh"
 
 namespace MessageNS {
-ResponseToClient::ResponseToClient(int leaderId, bool success, Type type, int originId)
+ResponseToClient::ResponseToClient(int leaderId, bool success, Type type,
+                                   int originId)
     : Message(type, originId) {
   m_leaderId = leaderId;
   m_success = success;
