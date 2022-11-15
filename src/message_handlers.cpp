@@ -41,7 +41,6 @@ void Server::handleVote(const json &json) {
 
 void Server::handleAppendEntries(const json &json) {
   RPC::AppendEntries log(json);
-  spdlog::info("{}: Received append entries from {}", id, log.getLeader());
 
   if (log.getTerm() < this->term) {
     Status status(this->term, false, this->id);
@@ -49,8 +48,10 @@ void Server::handleAppendEntries(const json &json) {
   }
 
   if (log.isHeartbeat()) {
+    spdlog::info("{}: Received heartbeat from {}", id, log.getLeader());
     this->start_time = std::chrono::system_clock::now();
   } else {
+    spdlog::info("{}: Received append entries from {}", id, log.getLeader());
     // TODO check if log contains an entry at prevLogIndex whose term matches
     // prevLogTerm
 
