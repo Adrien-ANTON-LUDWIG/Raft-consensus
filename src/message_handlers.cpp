@@ -52,7 +52,7 @@ void Server::handleAppendEntries(const json &json) {
 
   if (log.getTerm() < this->term) {
     Status status(this->term, false, this->id);
-    send(status, log.getLeader());
+    return send(status, log.getLeader());
   }
 
   if (log.isHeartbeat()) {
