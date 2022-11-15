@@ -21,7 +21,8 @@ namespace MessageNS
             CMD_LOAD,
             CMD_LIST,
             CMD_DELETE,
-            CMD_APPEND
+            CMD_APPEND,
+            RESP_CMD_LOAD,
         };
 
     private:
