@@ -47,10 +47,13 @@ void Server::update() {
 
 // FOLLOWER
 void Server::becomeFollower() { 
-  spdlog::info("{}: Became follower", id);
 
-  // Update state
-  state = STATE::FOLLOWER;
+  if (state != FOLLOWER) {
+    spdlog::info("{}: Become follower", id);
+
+    // Update state
+    state = FOLLOWER;
+  }
 
   // Reset vote attributes
   voted_for = -1;
