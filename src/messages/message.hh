@@ -24,6 +24,8 @@ namespace MessageNS
             CMD_APPEND
         };
 
+        static bool isCMD(int type);
+
     private:
         uuids::uuid m_uuid;
         Type m_type;

@@ -46,4 +46,8 @@ namespace MessageNS
 
         return data;
     }
+
+    bool Message::isCMD(int type) {
+        return type == CMD_LOAD || type == CMD_LIST || type == CMD_DELETE || type == CMD_APPEND;
+    }
 } // namespace MessageNS
