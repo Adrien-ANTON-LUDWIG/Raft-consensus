@@ -1,7 +1,7 @@
 #include "client.hh"
 
 #include "messages/CMD/load.hh"
-#include "mpi_wrappers.hh"
+#include "messages/mpi_wrappers.hh"
 
 using namespace MessageNS;
 
