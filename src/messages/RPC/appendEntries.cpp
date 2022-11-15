@@ -3,7 +3,7 @@
 namespace MessageNS::RPC {
 AppendEntries::AppendEntries(int term, int leaderId, int prevLogIndex,
                              int prevLogTerm,
-                             const std::vector<std::string>& entries,
+                             const std::vector<Logs::Log>& entries,
                              int leaderCommit)
     : Message(Type::RPC_APPEND_ENTRIES, leaderId) {
   m_term = term;
@@ -30,7 +30,10 @@ AppendEntries::AppendEntries(const json& data) : Message(data) {
   m_leaderId = data["leader"];
   m_prevLogIndex = data["prevLogIndex"];
   m_prevLogTerm = data["prevLogTerm"];
+
+  // Get std::vector<Logs::Log> from json
   m_entries = data["entries"];
+
   m_leaderCommit = data["leaderCommit"];
 }
 
@@ -42,7 +45,7 @@ int AppendEntries::getPreviousLogIdx() const { return m_prevLogIndex; }
 
 int AppendEntries::getPreviousLogTerm() const { return m_prevLogTerm; }
 
-const std::vector<std::string>& AppendEntries::getEntries() const {
+const std::vector<Logs::Log>& AppendEntries::getEntries() const {
   return m_entries;
 }
 
@@ -63,7 +66,10 @@ json AppendEntries::toJSON() const {
   data["leader"] = m_leaderId;
   data["prevLogIndex"] = m_prevLogIndex;
   data["prevLogTerm"] = m_prevLogTerm;
+
+  // Convert std::vector<Logs::Log> to json
   data["entries"] = m_entries;
+
   data["leaderCommit"] = m_leaderCommit;
 
   return data;

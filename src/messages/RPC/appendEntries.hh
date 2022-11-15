@@ -4,6 +4,7 @@
 #include <vector>
 
 #include "../message.hh"
+#include "../utils/logs.hh"
 
 namespace MessageNS::RPC
 {
@@ -13,12 +14,12 @@ namespace MessageNS::RPC
         int m_leaderId;
         int m_prevLogIndex;
         int m_prevLogTerm;
-        std::vector<std::string> m_entries;
+        std::vector<Logs::Log> m_entries;
         int m_leaderCommit;
     
     public:
         AppendEntries(int term, int leaderId, int prevLogIndex, int prevLogTerm,
-                      const std::vector<std::string>& entries, int leaderCommit);
+                      const std::vector<Logs::Log>& entries, int leaderCommit);
 
         AppendEntries(int term, int leaderId, int prevLogIndex, int prevLogTerm,
                       int leaderCommit);
@@ -29,12 +30,12 @@ namespace MessageNS::RPC
         int getLeader() const;
         int getPreviousLogIdx() const;
         int getPreviousLogTerm() const;
-        const std::vector<std::string>& getEntries() const;
+        const std::vector<Logs::Log>& getEntries() const;
         int getLeaderCommit() const;
 
         bool isHeartbeat() const;
 
-        AppendEntries& addEntry(const std::string& entry);
+        AppendEntries& addEntry(const Logs::Log& entry);
 
         virtual json toJSON() const override;
     };
