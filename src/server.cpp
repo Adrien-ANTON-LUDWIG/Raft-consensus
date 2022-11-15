@@ -46,7 +46,12 @@ void Server::update() {
 }
 
 // FOLLOWER
-void Server::becomeFollower() { state = STATE::FOLLOWER; }
+void Server::becomeFollower() { 
+  spdlog::info("{}: Became follower", id);
+
+  // Update state
+  state = STATE::FOLLOWER;
+}
 
 void Server::followerUpdate() {
   // Respond to RPCs from candidates and leaders
@@ -69,7 +74,10 @@ void Server::followerUpdate() {
 // ELECTION
 void Server::becomeCandidate() {
   // START ELECTION
-  spdlog::debug("{}: Become candidate", id);
+  spdlog::info("{}: Become candidate", id);
+
+  // Update state
+  state = STATE::CANDIDATE;
 
   // Increment current term
   term++;
@@ -110,6 +118,10 @@ void Server::candidateUpdate() {
 // LEADER
 void Server::becomeLeader() {
   spdlog::info("{}: Become leader", id);
+
+  // Update state
+  state = STATE::LEADER;
+
   // Upon election: send heartbeat to each server
   sendHeartbeat();
 }
