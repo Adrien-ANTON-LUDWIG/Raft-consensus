@@ -11,7 +11,7 @@ namespace MessageNS::RPC
         // TODO log entry
 
     public:
-        RequestVote(int term, bool candidateId);
+        RequestVote(int term, int candidateId);
         RequestVote(const json& data);
 
         int getTerm() const;

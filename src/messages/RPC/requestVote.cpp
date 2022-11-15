@@ -2,7 +2,7 @@
 
 namespace MessageNS::RPC
 {
-    RequestVote::RequestVote(int term, bool candidateId) : Message(Type::RPC_REQUEST_VOTE, candidateId) {
+    RequestVote::RequestVote(int term, int candidateId) : Message(Type::RPC_REQUEST_VOTE, candidateId) {
         m_term = term;
         m_candidateId = candidateId;
     }
