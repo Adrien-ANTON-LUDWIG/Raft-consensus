@@ -39,6 +39,9 @@ class Server {
   void handleVote(const json& json);
   void handleAppendEntries(const json& json);
 
+  // CMD HANDLERS
+  void handleLoad(const json& json);
+
   // UTILS
   void dropMessage(const MessageNS::Message& message);
   void checkTerm(int term);
