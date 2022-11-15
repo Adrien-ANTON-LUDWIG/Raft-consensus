@@ -45,8 +45,7 @@ void Server::update() {
 }
 
 // FOLLOWER
-void Server::becomeFollower() { 
-
+void Server::becomeFollower() {
   if (state != FOLLOWER) {
     spdlog::info("{}: Become follower", id);
 
@@ -133,7 +132,6 @@ void Server::becomeLeader() {
 }
 
 void Server::leaderUpdate() {
-
   // Check for new messages
   std::optional<MPI_Status> status = checkForMessage();
 
@@ -142,33 +140,46 @@ void Server::leaderUpdate() {
       handleRequestVote(recv(*status));
     else if (status->MPI_TAG == Message::RPC_APPEND_ENTRIES)
       handleAppendEntries(recv(*status));
+
+    // If command received from client: append entry to local log,
+    // respond after entry applied to state machine (§5.3)
+    else if (Message::isCMD(status->MPI_TAG))
+      m_logs.addLog(term, recv(*status));
+
     else  // non expected or invalid message -> drop
       dropMessage(recv(*status));
   }
 
-  // If command received from client: append entry to local log,
-  // respond after entry applied to state machine (§5.3)
+  // Send appendEntries RPCs to each follower
+  for (int rank = 0; rank < world_size; rank++) {
+    if (rank == id) continue;
+
+    int prevLogIndex = m_nextIndex[rank] - 1;
+    int prevLogTerm = m_logs.getLog(prevLogIndex).getTerm();
+    RPC::AppendEntries appendEntries(term, id, prevLogIndex, prevLogIndex,
+                                     m_logs.getCommitIndex());
+
+    // If last log index ≥ nextIndex for a follower: send
+    // AppendEntries RPC with log entries starting at nextIndex
+    if (m_logs.getLastIndex() >= m_nextIndex[rank])
+      appendEntries.setEntries(m_logs.getLastLogs(m_nextIndex[rank]));
+    else
+      appendEntries.isHeartbeat(true);
+
+    send(appendEntries, rank);
+  }
 
   // If last log index ≥ nextIndex for a follower: send
   // AppendEntries RPC with log entries starting at nextIndex
-  //     • If successful: update nextIndex and matchIndex for
-  //     follower (§5.3)
 
-  //     • If AppendEntries fails because of log inconsistency:
-  //     decrement nextIndex and retry (§5.3)
-
-  // If there exists an N such that N > commitIndex, a majority
-  // of matchIndex[i] ≥ N, and log[N].term == currentTerm:
-  // set commitIndex = N (§5.3, §5.4)
-
-  // Send heartbeat to each server : repeat during idle periods to prevent
-  // election timeouts
   if (current_time - start_time >= heartbeat_timeout) sendHeartbeat();
 }
 
 void Server::sendHeartbeat() {
-  RPC::AppendEntries heartbeat(term, id, TO_IMPLEMENT, TO_IMPLEMENT,
-                                        TO_IMPLEMENT);
+  int prevLogIndex = m_nextIndex[rank] - 1;
+  int prevLogTerm = m_logs.getLog(prevLogIndex).getTerm();
+  RPC::AppendEntries heartbeat(term, id, prevLogIndex, prevLogTerm,
+                               m_logs.getCommitIndex());
   sendAll(heartbeat, id, world_size);
 }
 
