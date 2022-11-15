@@ -23,5 +23,13 @@ void Logs::apply() {
 }
 
 Logs::Log Logs::getLog(int index) { return m_log[index]; }
+
+std::vector<Logs::Log> Logs::getLastLogs(int startIndex) {
+  return std::vector<Log>(m_log.begin() + startIndex, m_log.end());
+}
+
 int Logs::getCommitIndex() { return m_commitIndex; }
+
 int Logs::getLastApplied() { return m_lastApplied; }
+
+int Logs::getLastIndex() { return m_log.size(); }

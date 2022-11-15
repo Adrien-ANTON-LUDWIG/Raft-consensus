@@ -5,6 +5,7 @@
 using json = nlohmann::json;
 
 class Logs {
+ public:
   class Log {
    private:
     int m_term;
@@ -36,6 +37,10 @@ class Logs {
   void apply();
 
   Log getLog(int index);
+
+  // Get all logs from startIndex to the end.
+  std::vector<Log> getLastLogs(int startIndex);
   int getCommitIndex();
   int getLastApplied();
+  int getLastIndex();
 };
