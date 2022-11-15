@@ -10,11 +10,27 @@
 
 #include "json.hpp"
 
+#include "utils/logs.hh"
+
 using json = nlohmann::json;
 
 enum STATE { FOLLOWER, CANDIDATE, LEADER };
 
 class Server {
+  private:
+    // Id the current leader.
+    int m_leaderId;   
+
+    // Class to manage the logs (add, commit, apply, etc.).
+    Logs m_logs;
+
+    // For each server, index of the next log entry to send to that server.
+    std::vector<int> m_nextIndex;
+
+    // For each server, index of highest log entry known to be replicated on
+    // server.
+    std::vector<int> m_matchIndex;
+
  public:
   Server(int id, int world_size);
 
