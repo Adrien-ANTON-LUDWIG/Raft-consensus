@@ -6,9 +6,6 @@
 #include "messages/mpi_wrappers.hh"
 #include "spdlog/spdlog.h"
 
-// TODO
-#define TO_IMPLEMENT 42
-
 using namespace MessageNS;
 
 Server::Server(int id, int world_size) {
