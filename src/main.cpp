@@ -29,7 +29,7 @@ int main(int argc, char **argv) {
     client_count = std::stoi(argv[1]);
     server_count = std::stoi(argv[2]);
   }
-  catch (std::exception e) {
+  catch (std::exception& e) {
     std::cerr << "Invalid arguments." << std::endl << e.what() << std::endl;
     return 1;
   }
