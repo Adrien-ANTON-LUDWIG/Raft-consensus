@@ -160,42 +160,43 @@ void Server::leaderUpdate() {
   }
 
   // Send appendEntries RPCs to each follower
-  for (int rank = 0; rank < world_size; rank++) {
-    if (rank == id) continue;
+  if (current_time - start_time >= heartbeat_timeout) {
+    for (int rank = 0; rank < world_size; rank++) {
+      if (rank == id) continue;
 
-    int prevLogIndex = m_nextIndex[rank] - 1;
-    int prevLogTerm = -1;
-    if (prevLogIndex > 0)
-      m_logs.getLog(prevLogIndex).getTerm();
+      int prevLogIndex = m_nextIndex[rank] - 1;
+      int prevLogTerm = -1;
+      if (prevLogIndex > 0) m_logs.getLog(prevLogIndex).getTerm();
 
-    // RPC::AppendEntries appendEntries(term, id, prevLogIndex, prevLogIndex,
-    //                                  m_logs.getCommitIndex());
+      RPC::AppendEntries appendEntries(term, id, prevLogIndex, prevLogIndex,
+                                       m_logs.getCommitIndex());
 
-    // If last log index ≥ nextIndex for a follower: send
-    // AppendEntries RPC with log entries starting at nextIndex
-    // if (m_logs.getLastIndex() >= m_nextIndex[rank])
-    //   appendEntries.setEntries(m_logs.getLastLogs(m_nextIndex[rank]));
-    // else
-    //   appendEntries.isHeartbeat(true);
+      // If last log index ≥ nextIndex for a follower: send
+      // AppendEntries RPC with log entries starting at nextIndex
+      if (m_logs.getLastIndex() >= m_nextIndex[rank])
+        appendEntries.setEntries(m_logs.getLastLogs(m_nextIndex[rank]));
 
-    // send(appendEntries, rank);
+      send(appendEntries, rank);
+    }
+
+    // Reset heartbeat timer
+    start_time = std::chrono::system_clock::now();
   }
-
-  // If last log index ≥ nextIndex for a follower: send
-  // AppendEntries RPC with log entries starting at nextIndex
-
-  if (current_time - start_time >= heartbeat_timeout) sendHeartbeat();
 }
 
 void Server::sendHeartbeat() {
-  // for (int rank = 0; rank < world_size; rank++) {
-  //   if (rank == id) continue;
-  //   int prevLogIndex = m_nextIndex[rank] - 1;
-  //   int prevLogTerm = m_logs.getLog(prevLogIndex).getTerm();
-  //   RPC::AppendEntries heartbeat(term, id, prevLogIndex, prevLogTerm,
-  //                                m_logs.getCommitIndex());
-  //   send(heartbeat, rank);
-  // }
+  for (int rank = 0; rank < world_size; rank++) {
+    if (rank == id) continue;
+    int prevLogIndex = m_nextIndex[rank] - 1;
+    int prevLogTerm = -1;
+    if (prevLogIndex > 0) m_logs.getLog(prevLogIndex).getTerm();
+    RPC::AppendEntries heartbeat(term, id, prevLogIndex, prevLogTerm,
+                                 m_logs.getCommitIndex());
+    send(heartbeat, rank);
+  }
+
+  // Reset heartbeat timer
+  start_time = std::chrono::system_clock::now();
 }
 
 // UTILS
