@@ -48,13 +48,11 @@ const std::vector<Logs::Log>& AppendEntries::getEntries() const {
 
 int AppendEntries::getLeaderCommit() const { return m_leaderCommit; }
 
-bool AppendEntries::isHeartbeat() const { return m_entries.size() == 0; }
-
-AppendEntries& AppendEntries::addEntry(const Logs::Log& entry) {
-  m_entries.push_back(entry);
-
-  return *this;
+void AppendEntries::setEntries(const std::vector<Logs::Log>& entries) {
+  m_entries = entries;
 }
+
+bool AppendEntries::isHeartbeat() const { return m_entries.size() == 0; }
 
 json AppendEntries::toJSON() const {
   json data = Message::toJSON();

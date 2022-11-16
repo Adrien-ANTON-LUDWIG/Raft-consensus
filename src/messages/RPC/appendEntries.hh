@@ -33,9 +33,9 @@ namespace MessageNS::RPC
         const std::vector<Logs::Log>& getEntries() const;
         int getLeaderCommit() const;
 
-        bool isHeartbeat() const;
+        void setEntries(const std::vector<Logs::Log>& entries);
 
-        AppendEntries& addEntry(const Logs::Log& entry);
+        bool isHeartbeat() const;
 
         virtual json toJSON() const override;
     };
