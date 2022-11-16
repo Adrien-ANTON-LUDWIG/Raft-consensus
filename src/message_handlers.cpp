@@ -19,7 +19,7 @@ void Server::handleRequestVote(const json &json) {
       (this->voted_for == -1 || this->voted_for == request.getCandidate())) {
     grantVote = true;
     this->voted_for = request.getCandidate();
-    
+
     // Reset election timeout
     start_time = std::chrono::system_clock::now();
   }
@@ -41,36 +41,53 @@ void Server::handleVote(const json &json) {
   if (vote.isGranted()) {
     this->vote_count++;
     spdlog::info("{}: Vote granted by {}", id, vote.getOriginId());
-  }
-  else {
+  } else {
     spdlog::info("{}: Vote denied by {}", id, vote.getOriginId());
   }
 }
 
 void Server::handleAppendEntries(const json &json) {
-  RPC::AppendEntries log(json);
+  RPC::AppendEntries appendEntry(json);
+  spdlog::info("{}: Received append entries from {}", id,
+               appendEntry.getLeader());
 
-  if (log.getTerm() < this->term) {
+  // TODO Create response
+
+  // Reply false if term < currentTerm
+  if (appendEntry.getTerm() < this->term) {
+    // TODO Replace status by AppendEntriesResponse
     Status status(this->term, false, this->id);
-    return send(status, log.getLeader());
+    return send(status, appendEntry.getLeader());
   }
 
-  if (log.isHeartbeat()) {
-    spdlog::info("{}: Received heartbeat from {}", id, log.getLeader());
-    this->start_time = std::chrono::system_clock::now();
-  } else {
-    spdlog::info("{}: Received append entries from {}", id, log.getLeader());
-    // TODO check if log contains an entry at prevLogIndex whose term matches
-    // prevLogTerm
+  // TODO Check if log is consistent
+  // if (log.isHeartbeat()) {
+  //   spdlog::info("{}: Received heartbeat from {}", id, log.getLeader());
+  //   this->start_time = std::chrono::system_clock::now();
+  // } else
 
-    // TODO check if entry conflicts with a new one (same index but different
-    // terms)
-
-    // TODO append new entries not already in the log
-
-    // if (log.getLeaderCommit() > this->commitIndex)
-    // this->commitIndex = min(log.getLeaderCommit(), index of last new entry)
+  // Reply false if log doesn't contain an entry at prevLogIndex whose term
+  // matches prevLogTerm
+  if (!m_logs.contains(appendEntry.getPreviousLogIdx()) ||
+      m_logs.getTerm(appendEntry.getPreviousLogIdx()) != appendEntry.getPreviousLogTerm()) {
+    // response.success = false;
   }
+  // If an existing entry conflicts with a new one (same index but different
+  // terms), delete the existing entry and all that follow it
+  if (m_logs.contains(appendEntry.getPreviousLogIdx()) &&
+      m_logs.getTerm(appendEntry.getPreviousLogIdx()) != appendEntry.getPreviousLogTerm()) {
+    m_logs.deleteLastLogs(appendEntry.getPreviousLogIdx());
+  }
+  // Return ?
+
+  // Append any new entries not already in the log
+  m_logs.addLogs(appendEntry.getEntries());
+
+  // If leaderCommit > commitIndex, set commitIndex = min(leaderCommit,
+  // index of last new entry)
+  m_logs.updateCommitIndex(appendEntry.getLeaderCommit());
+  // if (appendEntry.getLeaderCommit() > m_logs.getCommitIndex())
+  //   m_logs.setCommitIndex(min(leaderCommit, m_logs.getLastLogs()));
 }
 
 void Server::handleAppendEntriesResponse(const json &json) {
