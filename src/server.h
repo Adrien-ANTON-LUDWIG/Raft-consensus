@@ -22,7 +22,7 @@ class Server {
     int m_leaderId;   
 
     // Class to manage the logs (add, commit, apply, etc.).
-    Logs m_logs;
+    Logs m_logs = Logs();
 
     // For each server, index of the next log entry to send to that server.
     std::vector<int> m_nextIndex;
