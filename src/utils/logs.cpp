@@ -26,7 +26,12 @@ void Logs::apply() {
   }
 }
 
-Logs::Log Logs::getLog(int index) { return m_log[index]; }
+Logs::Log Logs::getLog(int index) {
+  if (index < 0 || index >= m_log.size())
+    throw std::out_of_range("Index out of range");
+
+  return m_log[index];
+}
 
 std::vector<Logs::Log> Logs::getLastLogs(int startIndex) {
   return std::vector<Log>(m_log.begin() + startIndex, m_log.end());
