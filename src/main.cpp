@@ -8,11 +8,12 @@
 #include "client.hh"
 #include "server.h"
 #include "spdlog/spdlog.h"
+#include "repl.hh"
 
 int main(int argc, char **argv) {
 
   // Log setup
-  spdlog::set_level(spdlog::level::debug);
+  spdlog::set_level(spdlog::level::off);
   spdlog::set_pattern("[%H:%M:%S.%e] [%^%l%$] %v");
 
   /////////////////////////////////////////////////////////////////
@@ -64,6 +65,9 @@ int main(int argc, char **argv) {
     while (true) {
       server.update();
     }
+  }
+  else if (my_rank == client_count + server_count) {
+    REPL::start();
   }
 
   /////////////////////////////////////////////////////////////////
