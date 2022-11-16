@@ -39,14 +39,23 @@ class Logs {
   Logs();
 
   void addLog(int term, const json& command);
+  void addLogs(const std::vector<Log>& logs);
   void commitLog(int index);
   void apply();
 
   Log getLog(int index);
+  int getTerm(int index) const;
 
   // Get all logs from startIndex to the end.
   std::vector<Log> getLastLogs(int startIndex);
+  void deleteLastLogs(int startIndex);
+
   int getCommitIndex();
   int getLastApplied();
   int getLastIndex();
+
+  void updateCommitIndex(int leaderCommitIndex);
+
+  bool contains(int index) const;
+
 };
