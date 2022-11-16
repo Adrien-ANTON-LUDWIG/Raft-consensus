@@ -46,4 +46,4 @@ done
 repl_idx=$(($client_count + $server_count))
 total_size=$(($repl_idx + 1))
 
-mpiexec -np ${total_size} --stdin ${repl_idx} --oversubscribe ./"${exec}" "${client_count}" "${server_count}" "${client_commands}"
+mpiexec -np ${total_size} --stdin ${repl_idx} --oversubscribe ./"${build_dir}"/"${exec}" "${client_count}" "${server_count}" "${client_commands}"
