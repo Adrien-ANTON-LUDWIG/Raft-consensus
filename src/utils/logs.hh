@@ -12,10 +12,16 @@ class Logs {
     json m_command;
 
    public:
-    Log(int term, const json &command);
+    // Default constructor, needed for json deserialization
+    Log(){};
+    Log(int term, const json& command);
 
-    int getTerm();
-    json getCommand();
+    int getTerm() const;
+    json getCommand() const;
+
+    // Macro that defines the to_json and from_json functions, provided by the
+    // nlohmann::json library.
+    NLOHMANN_DEFINE_TYPE_INTRUSIVE(Log, m_term, m_command)
   };
 
  private:
@@ -32,7 +38,7 @@ class Logs {
  public:
   Logs();
 
-  void addLog(int term, const json &command);
+  void addLog(int term, const json& command);
   void commitLog(int index);
   void apply();
 

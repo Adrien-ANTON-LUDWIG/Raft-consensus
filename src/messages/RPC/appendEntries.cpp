@@ -30,10 +30,7 @@ AppendEntries::AppendEntries(const json& data) : Message(data) {
   m_leaderId = data["leader"];
   m_prevLogIndex = data["prevLogIndex"];
   m_prevLogTerm = data["prevLogTerm"];
-
-  // Get std::vector<Logs::Log> from json
   m_entries = data["entries"];
-
   m_leaderCommit = data["leaderCommit"];
 }
 
@@ -53,7 +50,7 @@ int AppendEntries::getLeaderCommit() const { return m_leaderCommit; }
 
 bool AppendEntries::isHeartbeat() const { return m_entries.size() == 0; }
 
-AppendEntries& AppendEntries::addEntry(const std::string& entry) {
+AppendEntries& AppendEntries::addEntry(const Logs::Log& entry) {
   m_entries.push_back(entry);
 
   return *this;
@@ -66,10 +63,7 @@ json AppendEntries::toJSON() const {
   data["leader"] = m_leaderId;
   data["prevLogIndex"] = m_prevLogIndex;
   data["prevLogTerm"] = m_prevLogTerm;
-
-  // Convert std::vector<Logs::Log> to json
   data["entries"] = m_entries;
-
   data["leaderCommit"] = m_leaderCommit;
 
   return data;

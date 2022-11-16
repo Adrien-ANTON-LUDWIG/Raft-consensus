@@ -1,10 +1,14 @@
 #include "logs.hh"
 
+// LOG
+
 Logs::Log::Log(int term, const json &command)
     : m_term(term), m_command(command) {}
 
-int Logs::Log::getTerm() { return m_term; }
-json Logs::Log::getCommand() { return m_command; }
+int Logs::Log::getTerm() const { return m_term; }
+json Logs::Log::getCommand() const { return m_command; }
+
+// LOGS
 
 Logs::Logs() {}
 

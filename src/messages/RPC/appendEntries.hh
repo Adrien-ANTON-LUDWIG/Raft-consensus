@@ -4,7 +4,7 @@
 #include <vector>
 
 #include "../message.hh"
-#include "../utils/logs.hh"
+#include "../../utils/logs.hh"
 
 namespace MessageNS::RPC
 {
