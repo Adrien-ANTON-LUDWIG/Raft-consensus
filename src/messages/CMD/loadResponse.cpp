@@ -13,7 +13,7 @@ LoadResponse::LoadResponse(const json& data) : ResponseToClient(data) {
 }
 
 json LoadResponse::toJSON() const {
-  json data = LoadResponse::toJSON();
+  json data = ResponseToClient::toJSON();
 
   data["fileUID"] = uuids::to_string(m_fileUID);
 
