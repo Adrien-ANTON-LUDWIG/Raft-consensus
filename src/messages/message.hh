@@ -15,6 +15,7 @@ namespace MessageNS
             RPC_REQUEST_VOTE,
             RPC_VOTE,
             RPC_APPEND_ENTRIES,
+            RPC_APPEND_ENTRIES_RESPONSE,
             REPL_SPEED,
             REPL_CRASH,
             REPL_START,
