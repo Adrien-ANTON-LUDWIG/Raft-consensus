@@ -62,9 +62,7 @@ int main(int argc, char** argv) {
     Client client(my_rank, server_count);
     if (argc == 4) client.loadCommands(argv[3]);
 
-    while (true) {
-      client.update();
-    }
+    client.run();
   } else if (my_rank == client_count + server_count) {
     REPL::start();
   }

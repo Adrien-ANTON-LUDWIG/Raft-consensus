@@ -21,8 +21,8 @@ class Client : REPL::Process {
    * Commands management
    */
   std::vector<MessageNS::Message> m_commands;
-  int m_currentCommand = 0;
-  std::vector<uuids::uuid> m_filesUUID;
+  long unsigned int m_currentCommand = 0;
+  std::vector<uuids::uuid> m_filesUID;
 
   /**
    * Time management
@@ -38,7 +38,7 @@ class Client : REPL::Process {
  public:
   Client(int id, int nbServer);
 
-  void update();
+  void run();
 
   void loadCommands(const std::string& path);
   MessageNS::Message parseCommand(const std::string& command);

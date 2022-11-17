@@ -4,33 +4,66 @@
 #include <sstream>
 #include <string>
 
+#include "messages/CMD/append.hh"
+#include "messages/CMD/appendResponse.hh"
+#include "messages/CMD/delete.hh"
+#include "messages/CMD/deleteResponse.hh"
+#include "messages/CMD/list.hh"
+#include "messages/CMD/listResponse.hh"
 #include "messages/CMD/load.hh"
+#include "messages/CMD/loadResponse.hh"
 #include "messages/mpi_wrappers.hh"
 
 using namespace MessageNS;
 
-Client::Client(int id, int nbServer) : m_id(id), m_nbServer(nbServer) {}
-
-void Client::update() {
-  // Update time
+Client::Client(int id, int nbServer) : m_id(id), m_nbServer(nbServer) {
+  // Time management
+  m_requestTimeout = std::chrono::milliseconds(std::rand() % 1000 + 1000);
+  m_startTime = std::chrono::system_clock::now();
   m_currentTime = std::chrono::system_clock::now();
 
-  // Create message
-  CMD::Load message("test.txt", m_id);
+  // REPL
+  m_isCrashed = false;
+  m_isStarted = false;
+}
 
-  // Send message
-  send(message, m_leaderId);
+void Client::run() {
+  while (m_currentCommand < m_commands.size()) {
+    // Update time
+    m_currentTime = std::chrono::system_clock::now();
 
-  // Receive response
-  std::optional<MPI_Status> status = checkForMessage();
+    if (m_currentTime - m_startTime > m_requestTimeout) {
+      // Send request
+      send(m_commands[m_currentCommand], m_leaderId);
+      m_startTime = std::chrono::system_clock::now();
+    }
 
-  if (!status.has_value()) return;
+    // Receive response
+    std::optional<MPI_Status> status = checkForMessage();
 
-  // if (!response.success) {
-  // Look leaderId
-  // Save it
-  // Send message to the leader
-  // }
+    if (!status.has_value()) continue;
+
+    ResponseToClient response;
+
+    // Handle responses
+    if (status->MPI_TAG == Message::Type::CMD_LOAD_RESPONSE) {
+      CMD::LoadResponse response(recv(*status));
+
+      if (response.getSuccess()) m_filesUID.push_back(response.getFileUID());
+    } else if (status->MPI_TAG == Message::Type::CMD_LIST_RESPONSE) {
+      CMD::ListResponse response(recv(*status));
+    } else if (status->MPI_TAG == Message::Type::CMD_DELETE_RESPONSE) {
+      CMD::DeleteResponse response(recv(*status));
+    } else if (status->MPI_TAG == Message::Type::CMD_APPEND_RESPONSE) {
+      CMD::AppendResponse response(recv(*status));
+    }
+
+    if (response.getSuccess()) {
+      m_currentCommand++;
+    } else {
+      m_leaderId = response.getLeaderId();
+    }
+  }
 }
 
 void Client::loadCommands(const std::string& path) {
@@ -84,8 +117,7 @@ Message Client::parseCommand(const std::string& command) {
     if (tokens.size() != 1)
       throw std::invalid_argument("Too many arguments. Usage: LIST\n");
 
-    // return CMD::List(m_id);
-    throw std::logic_error("Not implemented yet\n");
+    return CMD::List(m_id);
   } else if (cmd == "DELETE") {
     if (tokens.size() < 2)
       throw std::invalid_argument(
@@ -95,8 +127,7 @@ Message Client::parseCommand(const std::string& command) {
           "Too many arguments. Usage: DELETE <file_index>\n");
 
     int file_index = std::stoi(tokens[1]);
-    // return CMD::Delete(file_index, m_id);
-    throw std::logic_error("Not implemented yet\n");
+    return CMD::Delete(m_filesUID[file_index], m_id);
   } else if (cmd == "APPEND") {
     if (tokens.size() < 3)
       throw std::invalid_argument(
@@ -105,8 +136,7 @@ Message Client::parseCommand(const std::string& command) {
 
     int file_index = std::stoi(tokens[1]);
     std::string data = tokens[2];
-    // return CMD::Append(file_index, data, m_id);
-    throw std::logic_error("Not implemented yet\n");
+    return CMD::Append(m_filesUID[file_index], data, m_id);
   } else {
     throw std::invalid_argument("Unknown command");
   }
