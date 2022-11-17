@@ -146,6 +146,8 @@ void Server::leaderUpdate() {
       handleRequestVote(recv(*status));
     else if (status->MPI_TAG == Message::RPC_APPEND_ENTRIES)
       handleAppendEntries(recv(*status));
+    else if (status->MPI_TAG == Message::RPC_APPEND_ENTRIES_RESPONSE)
+      handleAppendEntriesResponse(recv(*status));
 
     // If command received from client: append entry to local log,
     // respond after entry applied to state machine (§5.3)
