@@ -31,14 +31,14 @@ void Logs::apply() {
 }
 
 Logs::Log Logs::getLog(int index) {
-  if (index < 0 || index >= m_log.size())
+  if (index < 0 || index >= int(m_log.size()))
     throw std::out_of_range("Index out of range");
 
   return m_log[index];
 }
 
 int Logs::getTerm(int index) const {
-  if (index < 0 || index >= m_log.size())
+  if (index < 0 || index >= int(m_log.size()))
     throw std::out_of_range("Index out of range");
 
   return m_log[index].getTerm();
@@ -64,5 +64,5 @@ void Logs::updateCommitIndex(int leaderCommitIndex) {
 }
 
 bool Logs::contains(int index) const {
-  return 0 < index && index < m_log.size();
+  return 0 < index && index < int(m_log.size());
 }

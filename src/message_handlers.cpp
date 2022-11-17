@@ -77,8 +77,6 @@ void Server::handleAppendEntries(const json &json) {
   m_start_time = std::chrono::system_clock::now();
   m_leaderId = appendEntry.getLeader();
 
-  int index = appendEntry.getPreviousLogIdx() + 1;
-
   // Nothing to do
   if (appendEntry.isHeartbeat()) {
     m_logs.updateCommitIndex(appendEntry.getLeaderCommit());
@@ -87,7 +85,7 @@ void Server::handleAppendEntries(const json &json) {
   }
 
   // Delete all entries after previous log index
-  m_logs.deleteLastLogs(appendEntry.getPreviousLogIdx());
+  m_logs.deleteLastLogs(appendEntry.getPreviousLogIdx() + 1);
 
   // Append any new entries not already in the log
   m_logs.addLogs(appendEntry.getEntries());

@@ -168,7 +168,7 @@ void Server::leaderUpdate() {
       int prevLogTerm = -1;
       if (prevLogIndex > 0) m_logs.getLog(prevLogIndex).getTerm();
 
-      RPC::AppendEntries appendEntries(m_term, m_id, prevLogIndex, prevLogIndex,
+      RPC::AppendEntries appendEntries(m_term, m_id, prevLogIndex, prevLogTerm,
                                        m_logs.getCommitIndex());
 
       // If last log index ≥ nextIndex for a follower: send
