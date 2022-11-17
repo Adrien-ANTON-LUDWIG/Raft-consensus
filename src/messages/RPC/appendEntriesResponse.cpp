@@ -4,6 +4,7 @@ namespace MessageNS::RPC {
 AppendEntriesResponse::AppendEntriesResponse(int term, bool success,
                                              int originId)
     : Message(Type::RPC_APPEND_ENTRIES_RESPONSE, originId),
+      m_term(term),
       m_success(success) {}
 
 AppendEntriesResponse::AppendEntriesResponse(const json& data) : Message(data) {
