@@ -4,7 +4,7 @@
 #include "messages/RPC/vote.hh"
 #include "messages/mpi_wrappers.hh"
 #include "messages/status.hh"
-#include "server.h"
+#include "server.hh"
 #include "spdlog/spdlog.h"
 
 using namespace MessageNS;

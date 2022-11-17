@@ -6,7 +6,7 @@
 #include <thread>
 
 #include "client.hh"
-#include "server.h"
+#include "server.hh"
 #include "spdlog/spdlog.h"
 #include "repl.hh"
 

@@ -1,4 +1,4 @@
-#include "server.h"
+#include "server.hh"
 #include "client.hh"
 
 #include "messages/REPL/crash.hh"

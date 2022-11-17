@@ -1,6 +1,6 @@
 #include "messages/CMD/load.hh"
 #include "messages/CMD/loadResponse.hh"
-#include "server.h"
+#include "server.hh"
 
 using namespace MessageNS;
 

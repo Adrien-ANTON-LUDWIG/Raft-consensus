@@ -35,7 +35,7 @@ target_sources(my_aws_s3 PRIVATE
     src/repl.hh
     src/rpc_handlers.cpp
     src/server.cpp
-    src/server.h
+    src/server.hh
 )
 
 target_include_directories(my_aws_s3 PRIVATE

@@ -1,4 +1,4 @@
-#include "server.h"
+#include "server.hh"
 
 #include "messages/RPC/appendEntries.hh"
 #include "messages/RPC/requestVote.hh"
