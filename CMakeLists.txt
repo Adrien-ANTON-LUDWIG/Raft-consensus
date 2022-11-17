@@ -20,6 +20,7 @@ set(CMAKE_CXX_FLAGS_DEBUG "-g3 -O0 -DDEBUG")
 set(CMAKE_CXX_FLAGS_RELEASE "-Ofast -DRELEASE -DNDEBUG -march=native")
 
 add_subdirectory(src/messages)
+add_subdirectory(src/utils)
 
 add_executable(my_aws_s3 src/main.cpp)
 
@@ -43,4 +44,5 @@ target_include_directories(my_aws_s3 PRIVATE
 
 target_link_libraries(my_aws_s3 PRIVATE
     messages
+    utils
 )

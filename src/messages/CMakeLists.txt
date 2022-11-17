@@ -8,6 +8,8 @@ set(CMD_sources
 set(RPC_sources
     RPC/appendEntries.cpp
     RPC/appendEntries.hh
+    RPC/appendEntriesResponse.cpp
+    RPC/appendEntriesResponse.hh
     RPC/requestVote.cpp
     RPC/requestVote.hh
     RPC/vote.cpp
