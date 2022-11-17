@@ -33,7 +33,7 @@ target_sources(my_aws_s3 PRIVATE
     src/repl_process.hh
     src/repl.cpp
     src/repl.hh
-    src/rpc_handlers.cpp
+    src/cmd_handlers.cpp
     src/server.cpp
     src/server.hh
 )
