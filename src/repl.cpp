@@ -93,6 +93,7 @@ static void parseCommand(const std::string &line) {
       return;
 
 
+
   } else if (cmd == "crash") {
     if (tokens.size() < 2) {
       std::cerr << "Missing rank. Usage: crash <rank>\n";
@@ -101,6 +102,8 @@ static void parseCommand(const std::string &line) {
 
     if (!parseRank(tokens[1], rank))
       return;
+
+    
   } else if (cmd == "info") {
     if (tokens.size() < 2) {
       std::cerr << "Missing rank. Usage: info <rank>\n";

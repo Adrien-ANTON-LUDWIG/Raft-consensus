@@ -22,8 +22,15 @@ void Client::update() {
     {
       MessageNS::REPL::InfoResponse response(m_speed, m_isCrashed, true, m_isStarted, m_id);
       send(response, m_replRank);
+    } else if (type == Message::Type::REPL_START) {
+      m_isStarted = true;
+    } else if (type == Message::Type::REPL_CRASH) {
+      m_isCrashed = true;
     }
   }
+
+  if (!m_isStarted || m_isCrashed)
+    return;
 
   // Create message
   CMD::Load message("test.txt", m_id);
