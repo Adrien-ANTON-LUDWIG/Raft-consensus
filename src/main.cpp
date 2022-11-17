@@ -6,30 +6,33 @@
 #include <thread>
 
 #include "client.hh"
-#include "server.hh"
-#include "spdlog/spdlog.h"
 #include "repl.hh"
+#include "server.hh"
+#include "spdlog/sinks/basic_file_sink.h"
+#include "spdlog/spdlog.h"
 
-int main(int argc, char **argv) {
-
+int main(int argc, char** argv) {
   // Log setup
-  spdlog::set_level(spdlog::level::off);
+  auto logger = spdlog::basic_logger_mt("basic_logger", "./build/logs.txt");
+  spdlog::set_default_logger(logger);
+  spdlog::set_level(spdlog::level::info);
   spdlog::set_pattern("[%H:%M:%S.%e] [%^%l%$] %v");
+  spdlog::flush_on(spdlog::level::info);
 
   /////////////////////////////////////////////////////////////////
 
   if (argc < 3) {
-    std::cerr << "Invalid argument count. Received " << argc - 1 << ", expected 2." << std::endl;
+    std::cerr << "Invalid argument count. Received " << argc - 1
+              << ", expected 2." << std::endl;
     return 1;
   }
-  
+
   int client_count;
   int server_count;
   try {
     client_count = std::stoi(argv[1]);
     server_count = std::stoi(argv[2]);
-  }
-  catch (std::exception& e) {
+  } catch (std::exception& e) {
     std::cerr << "Invalid arguments." << std::endl << e.what() << std::endl;
     return 1;
   }
@@ -48,25 +51,20 @@ int main(int argc, char **argv) {
 
   /////////////////////////////////////////////////////////////////
 
-  if (my_rank < client_count)
-  {
-    Client client(my_rank, world_size);
-    if (argc == 4)
-      client.loadCommands(argv[3]);
-
-    while (true) {
-      client.update();
-    }
-  }
-  else if (my_rank < client_count + server_count)
-  {
-    Server server(my_rank, world_size);
+  if (my_rank < server_count) {
+    Server server(my_rank, server_count);
 
     while (true) {
       server.update();
     }
-  }
-  else if (my_rank == client_count + server_count) {
+  } else if (my_rank < server_count + client_count) {
+    Client client(my_rank, server_count);
+    if (argc == 4) client.loadCommands(argv[3]);
+
+    while (true) {
+      client.update();
+    }
+  } else if (my_rank == client_count + server_count) {
     REPL::start();
   }
 
