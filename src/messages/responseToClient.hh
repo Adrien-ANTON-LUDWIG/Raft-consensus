@@ -1,3 +1,5 @@
+#pragma once
+
 #include "message.hh"
 
 namespace MessageNS {

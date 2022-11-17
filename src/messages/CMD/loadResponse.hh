@@ -1,3 +1,5 @@
+#pragma once
+
 #include "../responseToClient.hh"
 
 namespace MessageNS::CMD {
