@@ -67,7 +67,7 @@ int main(int argc, char **argv) {
     }
   }
   else if (my_rank == client_count + server_count) {
-    REPL::start();
+    REPL::start(client_count, server_count);
   }
 
   /////////////////////////////////////////////////////////////////

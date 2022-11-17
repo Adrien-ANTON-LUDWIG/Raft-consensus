@@ -4,7 +4,7 @@
 
 namespace REPL {
 /// @brief Launch REPL with CLI control
-void start();
+void start(int clientCount, int serverCount);
 
 /// @brief Stop CLI control
 void stop();

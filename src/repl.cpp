@@ -5,7 +5,24 @@
 #include <vector>
 
 namespace REPL {
-static bool isRunning = false;
+static bool g_isRunning = false;
+static int g_clientCount = -1;
+static int g_serverCount = -1;
+static bool g_isHeadlessRun = false;
+
+static void printRanks() {
+  std::cout << "Client ranks: [0, " << g_clientCount - 1 << "] | Server ranks: [" << g_clientCount << ", " << g_clientCount + g_serverCount - 1 << "]\n";
+}
+
+static void printHelp() {
+  std::cout << "----HELP----\n";
+  printRanks();
+  std::cout << "speed <rank> low|medium|high     Change speed of process of rank <rank>\n";
+  std::cout << "start <rank>                     Start client of rank <rank>\n";
+  std::cout << "crash <rank>                     Crash process of rank <rank>\n";
+  std::cout << "exit                             Exit REPL CLI\n";
+  std::cout << "help                             Display help\n";
+}
 
 static void parseCommand(const std::string &line) {
   std::istringstream iss(line);
@@ -34,15 +51,20 @@ static void parseCommand(const std::string &line) {
   } else if (cmd == "crash") {
   } else if (cmd == "exit") {
     stop();
+  } else if (cmd == "help") {
+    printHelp();
   } else {
     std::cerr << "Unkown command.\n";
   }
 }
 
-void start() {
+void start(int clientCount, int serverCount) {
   std::cout << "REPL CLI enabled\n";
-  isRunning = true;
-  while (isRunning) {
+  g_clientCount = clientCount;
+  g_serverCount = serverCount;
+  printRanks();
+  g_isRunning = true;
+  while (g_isRunning) {
     std::string line;
     if (std::getline(std::cin, line)) {
       parseCommand(line);
@@ -51,9 +73,12 @@ void start() {
 }
 
 void stop() {
-  isRunning = false;
+  g_isRunning = false;
   std::cout << "REPL CLI disabled.\n";
 }
 
-void headlessExec(const std::string &command) { parseCommand(command); }
+void headlessExec(const std::string &command) {
+  g_isHeadlessRun = true;
+  parseCommand(command);
+}
 }  // namespace REPL
