@@ -11,5 +11,5 @@ void stop();
 
 /// @brief Execute command directly without CLI control
 /// @param command
-void headless_exec(const std::string& command);
+void headlessExec(const std::string& command);
 }  // namespace REPL

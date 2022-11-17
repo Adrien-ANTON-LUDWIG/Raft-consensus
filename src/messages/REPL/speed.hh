@@ -14,5 +14,7 @@ class Speed : public Message {
   Speed(const json& data);
 
   json toJSON() const override;
+
+  SpeedType getSpeed() const;
 };
 }  // namespace MessageNS::REPL

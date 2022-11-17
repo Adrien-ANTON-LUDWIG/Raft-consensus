@@ -17,4 +17,8 @@ namespace MessageNS::REPL
 
     return data;
   }
+
+  SpeedType Speed::getSpeed() const {
+    return m_speed;
+  }
 } // namespace MessageNS::REPL

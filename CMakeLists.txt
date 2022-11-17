@@ -27,6 +27,9 @@ target_sources(my_aws_s3 PRIVATE
     src/client.cpp
     src/client.hh
     src/message_handlers.cpp
+    src/repl_handlers.cpp
+    src/repl_process.cpp
+    src/repl_process.hh
     src/repl.cpp
     src/repl.hh
     src/rpc_handlers.cpp

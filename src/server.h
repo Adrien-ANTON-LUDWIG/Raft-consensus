@@ -8,12 +8,13 @@
 
 #include "json.hpp"
 #include "messages/mpi_wrappers.hh"
+#include "repl_process.hh"
 
 using json = nlohmann::json;
 
 enum STATE { FOLLOWER, CANDIDATE, LEADER };
 
-class Server {
+class Server : REPL::Process {
  private:
   int m_id;  // Corresponding to MPI rank
 
@@ -38,6 +39,8 @@ class Server {
   std::chrono::milliseconds m_heartbeat_timeout;
   std::chrono::_V2::system_clock::time_point m_start_time;
   std::chrono::_V2::system_clock::time_point m_current_time;
+
+  // REPL
 
  public:
   Server(int id, int world_size);
@@ -65,6 +68,9 @@ class Server {
 
   // CMD HANDLERS
   void handleLoad(const json& json);
+
+  // REPL HANDLERS
+  virtual void handleREPLInfo(const json& json) override;
 
   // UTILS
   void dropMessage(const MessageNS::Message& message);

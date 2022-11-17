@@ -36,6 +36,7 @@ add_library(messages STATIC
     status.hh
     ${CMD_sources}
     ${RPC_sources}
+    ${REPL_sources}
 )
 
 target_include_directories(messages PUBLIC

@@ -8,8 +8,6 @@ class Info : public Message {
  public:
   Info(int originId);
   Info(const json& data);
-
-  json toJSON() const override;
 };
 
 class InfoResponse : public Message {

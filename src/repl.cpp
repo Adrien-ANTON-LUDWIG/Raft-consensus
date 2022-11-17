@@ -55,5 +55,5 @@ void stop() {
   std::cout << "REPL CLI disabled.\n";
 }
 
-void headless_exec(const std::string &command) { parseCommand(command); }
+void headlessExec(const std::string &command) { parseCommand(command); }
 }  // namespace REPL
