@@ -12,6 +12,11 @@ class ResponseToClient : public Message {
   ResponseToClient(const json& data);
 
  public:
+  ResponseToClient() = default;
+
+  int getLeaderId() const;
+  bool getSuccess() const;
+
   virtual json toJSON() const override;
 };
 }  // namespace MessageNS
