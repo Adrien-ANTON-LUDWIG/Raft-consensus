@@ -15,7 +15,7 @@ using json = nlohmann::json;
 
 enum STATE { FOLLOWER, CANDIDATE, LEADER };
 
-class Server : REPL::Process {
+class Server : ::REPL::Process {
  private:
   int m_id;  // Corresponding to MPI rank
 

@@ -6,6 +6,8 @@
 #include "messages/mpi_wrappers.hh"
 #include "spdlog/spdlog.h"
 
+#include "messages/REPL/info.hh"
+
 using namespace MessageNS;
 
 Server::Server(int id, int world_size, int replRank) : ::REPL::Process(replRank) {
@@ -25,6 +27,18 @@ Server::Server(int id, int world_size, int replRank) : ::REPL::Process(replRank)
 
 // GENERAL UPDATE
 void Server::update() {
+
+  std::optional<MPI_Status> statusOpt = checkForMessage(m_replRank);
+  if (statusOpt.has_value()) {
+    json query = recv(statusOpt.value());
+    auto type = Message::getType(query);
+    if (type == Message::Type::REPL_INFO)
+    {
+      MessageNS::REPL::InfoResponse response(m_speed, m_isCrashed, true, true, m_id);
+      send(response, m_replRank);
+    }
+  }
+
   // Update the current_time
   m_current_time = std::chrono::system_clock::now();
 
