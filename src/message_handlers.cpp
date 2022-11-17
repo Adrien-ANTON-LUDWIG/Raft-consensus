@@ -1,4 +1,5 @@
 #include "messages/RPC/appendEntries.hh"
+#include "messages/RPC/appendEntriesResponse.hh"
 #include "messages/RPC/requestVote.hh"
 #include "messages/RPC/vote.hh"
 #include "messages/mpi_wrappers.hh"
@@ -91,16 +92,37 @@ void Server::handleAppendEntries(const json &json) {
 }
 
 void Server::handleAppendEntriesResponse(const json &json) {
-  //     • If successful: update nextIndex and matchIndex for
-  //     follower (§5.3)
+  RPC::AppendEntriesResponse response(json);
+  checkTerm(response.getTerm());
 
-  //     • If AppendEntries fails because of log inconsistency:
-  //     decrement nextIndex and retry (§5.3)
+  if (state != LEADER) {
+    spdlog::info("{}: Received append entries response but not leader", id);
+    return;
+  }
 
-  // If there exists an N such that N > commitIndex, a majority
-  // of matchIndex[i] ≥ N, and log[N].term == currentTerm:
-  // set commitIndex = N (§5.3, §5.4)
+  spdlog::info("{}: Received append entries response from {}", id,
+               response.getOriginId());
 
-  // Send heartbeat to each server : repeat during idle periods to prevent
-  // election timeouts
+  // Update nextIndex and matchIndex for follower
+  if (response.isSuccess()) {
+    // If successful: update nextIndex and matchIndex for follower
+    m_nextIndex[response.getOriginId()] = response.getMatchIndex() + 1;
+    m_matchIndex[response.getOriginId()] = response.getMatchIndex();
+  } else {
+    // If AppendEntries fails because of log inconsistency: decrement nextIndex
+    // and retry
+    m_nextIndex[response.getOriginId()] =
+        std::min(m_nextIndex[response.getOriginId()] - 1, 1);
+  }
+
+  // If there exists an N such that N > commitIndex, a majority of
+  // matchIndex[i] >= N, and log[N].term == currentTerm: set commitIndex = N
+  int N = m_logs.getCommitIndex() + 1;
+  int count = std::count(m_matchIndex.begin(), m_matchIndex.end(), N);
+  while (N <= m_logs.getLastIndex() && count > world_size / 2 &&
+         m_logs.getTerm(N) == term) {
+    N++;
+    count = std::count(m_matchIndex.begin(), m_matchIndex.end(), N);
+  }
+  m_logs.updateCommitIndex(N - 1);
 }
