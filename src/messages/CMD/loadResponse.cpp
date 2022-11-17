@@ -3,7 +3,7 @@
 namespace MessageNS::CMD {
 LoadResponse::LoadResponse(const uuids::uuid& fileUID, int leaderId,
                            bool success, int originId)
-    : ResponseToClient(leaderId, success, Type::RESP_CMD_LOAD, originId) {
+    : ResponseToClient(leaderId, success, Type::CMD_LOAD_RESPONSE, originId) {
   m_fileUID = fileUID;
 }
 
