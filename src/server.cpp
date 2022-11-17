@@ -8,7 +8,7 @@
 
 using namespace MessageNS;
 
-Server::Server(int id, int world_size) {
+Server::Server(int id, int world_size, int replRank) : ::REPL::Process(replRank) {
   m_id = id;
   m_world_size = world_size;
 

@@ -3,6 +3,10 @@
 #include <string>
 
 namespace REPL {
+/// @brief Initialize REPL rank
+/// @param rank 
+void init(int rank);
+
 /// @brief Launch REPL with CLI control
 void start(int clientCount, int serverCount);
 

@@ -4,12 +4,27 @@
 
 #include "messages/CMD/load.hh"
 #include "messages/mpi_wrappers.hh"
+#include "messages/REPL/info.hh"
 
 using namespace MessageNS;
 
-Client::Client(int id, int nbServer) : m_id(id), m_nbServer(nbServer) {}
+Client::Client(int id, int nbServer, int replRank) : ::REPL::Process(replRank)  {
+  m_id = id;
+  m_nbServer = nbServer;
+}
 
 void Client::update() {
+  std::optional<MPI_Status> statusOpt = checkForMessage(m_replRank);
+  if (statusOpt.has_value()) {
+    json query = recv(statusOpt.value());
+    auto type = Message::getType(query);
+    if (type == Message::Type::REPL_INFO)
+    {
+      MessageNS::REPL::InfoResponse response(m_speed, m_isCrashed, true, m_isStarted, m_id);
+      send(response, m_replRank);
+    }
+  }
+
   // Create message
   CMD::Load message("test.txt", m_id);
 

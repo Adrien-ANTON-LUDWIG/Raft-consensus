@@ -54,6 +54,6 @@ void InfoResponse::print() {
   os << "\n- Is crashed: " << (m_isCrashed ? "YES" : "NO") << "\n";
 
   if (m_isClient)
-    os << "\n- Is started: " << (m_isStarted ? "YES" : "NO") << "\n";
+    os << "- Is started: " << (m_isStarted ? "YES" : "NO") << "\n";
 }
 }  // namespace MessageNS::REPL

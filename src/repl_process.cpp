@@ -1,6 +1,10 @@
 #include "repl_process.hh"
 
 namespace REPL {
+Process::Process(int replRank) {
+  m_replRank = replRank;
+}
+
 void Process::handleREPLSpeed(const json& json) {
   MessageNS::REPL::Speed speed(json);
 

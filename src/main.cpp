@@ -48,9 +48,10 @@ int main(int argc, char **argv) {
 
   /////////////////////////////////////////////////////////////////
 
+  int replRank = client_count + server_count;
   if (my_rank < client_count)
   {
-    Client client(my_rank, world_size);
+    Client client(my_rank, world_size, replRank);
     if (argc == 4)
       client.loadCommands(argv[3]);
 
@@ -58,15 +59,16 @@ int main(int argc, char **argv) {
       client.update();
     }
   }
-  else if (my_rank < client_count + server_count)
+  else if (my_rank < replRank)
   {
-    Server server(my_rank, world_size);
+    Server server(my_rank, world_size, replRank);
 
     while (true) {
       server.update();
     }
   }
-  else if (my_rank == client_count + server_count) {
+  else if (my_rank == replRank) {
+    REPL::init(my_rank);
     REPL::start(client_count, server_count);
   }
 

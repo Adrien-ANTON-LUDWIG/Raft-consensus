@@ -61,7 +61,7 @@ class Server : REPL::Process {
   std::chrono::_V2::system_clock::time_point m_current_time;
 
  public:
-  Server(int id, int world_size);
+  Server(int id, int world_size, int replRank);
 
   // GENERAL UPDATE
   void update();
