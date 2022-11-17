@@ -14,6 +14,17 @@ set(RPC_sources
     RPC/vote.hh
 )
 
+set (REPL_sources
+    REPL/crash.cpp
+    REPL/crash.hh
+    REPL/info.cpp
+    REPL/info.hh
+    REPL/speed.cpp
+    REPL/speed.hh
+    REPL/start.cpp
+    REPL/start.hh
+)
+
 add_library(messages STATIC
     "message.cpp"
     "message.hh"

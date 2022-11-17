@@ -18,17 +18,21 @@ class Message {
     REPL_SPEED,
     REPL_CRASH,
     REPL_START,
+    REPL_INFO,
     CMD_LOAD,
     CMD_LIST,
     CMD_DELETE,
     CMD_APPEND,
     RESP_CMD_LOAD,
+    RESP_REPL_INFO,
   };
 
  private:
   uuids::uuid m_uuid;
   Type m_type;
-  int m_originId;
+
+  protected:
+    int m_originId;
 
  public:
   Message(Type type, int originId);
