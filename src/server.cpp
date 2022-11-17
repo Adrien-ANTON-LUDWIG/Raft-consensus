@@ -6,9 +6,6 @@
 #include "messages/mpi_wrappers.hh"
 #include "spdlog/spdlog.h"
 
-// TODO
-#define TO_IMPLEMENT 42
-
 using namespace MessageNS;
 
 Server::Server(int id, int world_size) {
@@ -20,6 +17,9 @@ Server::Server(int id, int world_size) {
   m_heartbeat_timeout = std::chrono::milliseconds(50);
   m_start_time = std::chrono::system_clock::now();
 
+  m_nextIndex = std::vector<int>(world_size, 1);
+  m_matchIndex = std::vector<int>(world_size, 0);
+
   spdlog::info("{}: Election timeout: {}", m_id, m_election_timeout.count());
 }
 
@@ -28,9 +28,8 @@ void Server::update() {
   // Update the current_time
   m_current_time = std::chrono::system_clock::now();
 
-  // TODO
-  // If commitIndex > lastApplied: increment lastApplied, apply log[lastApplied]
-  // to state machine
+  // Apply committed logs
+  m_logs.apply();
 
   switch (m_state) {
     case LEADER:
@@ -46,8 +45,7 @@ void Server::update() {
 }
 
 // FOLLOWER
-void Server::becomeFollower() { 
-
+void Server::becomeFollower() {
   if (m_state != FOLLOWER) {
     spdlog::info("{}: Become follower", m_id);
 
@@ -75,7 +73,8 @@ void Server::followerUpdate() {
   }
 
   // Election timeout : convert to candidate
-  if (m_current_time - m_start_time >= m_election_timeout) return becomeCandidate();
+  if (m_current_time - m_start_time >= m_election_timeout)
+    return becomeCandidate();
 }
 
 // ELECTION
@@ -129,12 +128,17 @@ void Server::becomeLeader() {
   // Update state
   m_state = STATE::LEADER;
 
+  // Set nextIndex for each server to lastLogIndex + 1
+  m_nextIndex = std::vector<int>(m_world_size, m_logs.getLastIndex() + 1);
+
+  // Set matchIndex for each server to 0 (initialized, increases monotonically)
+  m_matchIndex = std::vector<int>(m_world_size, 0);
+
   // Upon election: send heartbeat to each server
   sendHeartbeat();
 }
 
 void Server::leaderUpdate() {
-
   // Check for new messages
   std::optional<MPI_Status> status = checkForMessage();
 
@@ -143,34 +147,55 @@ void Server::leaderUpdate() {
       handleRequestVote(recv(*status));
     else if (status->MPI_TAG == Message::RPC_APPEND_ENTRIES)
       handleAppendEntries(recv(*status));
+    else if (status->MPI_TAG == Message::RPC_APPEND_ENTRIES_RESPONSE)
+      handleAppendEntriesResponse(recv(*status));
+
+    // If command received from client: append entry to local log,
+    // respond after entry applied to state machine (§5.3)
+    else if (Message::isCMD(status->MPI_TAG))
+      m_logs.addLog(m_term, recv(*status));
+
     else  // non expected or invalid message -> drop
       dropMessage(recv(*status));
   }
 
-  // If command received from client: append entry to local log,
-  // respond after entry applied to state machine (§5.3)
+  // Send appendEntries RPCs to each follower
+  if (m_current_time - m_start_time >= m_heartbeat_timeout) {
+    for (int rank = 0; rank < m_world_size; rank++) {
+      if (rank == m_id) continue;
 
-  // If last log index ≥ nextIndex for a follower: send
-  // AppendEntries RPC with log entries starting at nextIndex
-  //     • If successful: update nextIndex and matchIndex for
-  //     follower (§5.3)
+      int prevLogIndex = m_nextIndex[rank] - 1;
+      int prevLogTerm = -1;
+      if (prevLogIndex > 0) m_logs.getLog(prevLogIndex).getTerm();
 
-  //     • If AppendEntries fails because of log inconsistency:
-  //     decrement nextIndex and retry (§5.3)
+      RPC::AppendEntries appendEntries(m_term, m_id, prevLogIndex, prevLogIndex,
+                                       m_logs.getCommitIndex());
 
-  // If there exists an N such that N > commitIndex, a majority
-  // of matchIndex[i] ≥ N, and log[N].term == currentTerm:
-  // set commitIndex = N (§5.3, §5.4)
+      // If last log index ≥ nextIndex for a follower: send
+      // AppendEntries RPC with log entries starting at nextIndex
+      if (m_logs.getLastIndex() >= m_nextIndex[rank])
+        appendEntries.setEntries(m_logs.getLastLogs(m_nextIndex[rank]));
+      send(appendEntries, rank);
+    }
 
-  // Send heartbeat to each server : repeat during idle periods to prevent
-  // election timeouts
-  if (m_current_time - m_start_time >= m_heartbeat_timeout) sendHeartbeat();
+    // Reset heartbeat timer
+    m_start_time = std::chrono::system_clock::now();
+  }
 }
 
 void Server::sendHeartbeat() {
-  RPC::AppendEntries heartbeat(m_term, m_id, TO_IMPLEMENT, TO_IMPLEMENT,
-                                        TO_IMPLEMENT);
-  sendAll(heartbeat, m_id, m_world_size);
+  for (int rank = 0; rank < m_world_size; rank++) {
+    if (rank == m_id) continue;
+    int prevLogIndex = m_nextIndex[rank] - 1;
+    int prevLogTerm = -1;
+    if (prevLogIndex > 0) m_logs.getLog(prevLogIndex).getTerm();
+    RPC::AppendEntries heartbeat(m_term, m_id, prevLogIndex, prevLogTerm,
+                                 m_logs.getCommitIndex());
+    send(heartbeat, rank);
+  }
+
+  // Reset heartbeat timer
+  m_start_time = std::chrono::system_clock::now();
 }
 
 // UTILS

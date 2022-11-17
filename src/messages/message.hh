@@ -15,6 +15,7 @@ class Message {
     RPC_REQUEST_VOTE,
     RPC_VOTE,
     RPC_APPEND_ENTRIES,
+    RPC_APPEND_ENTRIES_RESPONSE,
     REPL_SPEED,
     REPL_CRASH,
     REPL_START,
@@ -27,12 +28,14 @@ class Message {
     RESP_REPL_INFO,
   };
 
+  static bool isCMD(int type);
+
  private:
   uuids::uuid m_uuid;
   Type m_type;
 
-  protected:
-    int m_originId;
+ protected:
+  int m_originId;
 
  public:
   Message(Type type, int originId);

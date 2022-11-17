@@ -3,7 +3,7 @@
 namespace MessageNS::RPC {
 AppendEntries::AppendEntries(int term, int leaderId, int prevLogIndex,
                              int prevLogTerm,
-                             const std::vector<std::string>& entries,
+                             const std::vector<Logs::Log>& entries,
                              int leaderCommit)
     : Message(Type::RPC_APPEND_ENTRIES, leaderId) {
   m_term = term;
@@ -42,19 +42,17 @@ int AppendEntries::getPreviousLogIdx() const { return m_prevLogIndex; }
 
 int AppendEntries::getPreviousLogTerm() const { return m_prevLogTerm; }
 
-const std::vector<std::string>& AppendEntries::getEntries() const {
+const std::vector<Logs::Log>& AppendEntries::getEntries() const {
   return m_entries;
 }
 
 int AppendEntries::getLeaderCommit() const { return m_leaderCommit; }
 
-bool AppendEntries::isHeartbeat() const { return m_entries.size() == 0; }
-
-AppendEntries& AppendEntries::addEntry(const std::string& entry) {
-  m_entries.push_back(entry);
-
-  return *this;
+void AppendEntries::setEntries(const std::vector<Logs::Log>& entries) {
+  m_entries = entries;
 }
+
+bool AppendEntries::isHeartbeat() const { return m_entries.size() == 0; }
 
 json AppendEntries::toJSON() const {
   json data = Message::toJSON();

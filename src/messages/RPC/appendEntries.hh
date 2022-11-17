@@ -3,6 +3,7 @@
 #include <string>
 #include <vector>
 
+#include "../../utils/logs.hh"
 #include "../message.hh"
 
 namespace MessageNS::RPC {
@@ -12,12 +13,12 @@ class AppendEntries : public Message {
   int m_leaderId;
   int m_prevLogIndex;
   int m_prevLogTerm;
-  std::vector<std::string> m_entries;
+  std::vector<Logs::Log> m_entries;
   int m_leaderCommit;
 
  public:
   AppendEntries(int term, int leaderId, int prevLogIndex, int prevLogTerm,
-                const std::vector<std::string>& entries, int leaderCommit);
+                const std::vector<Logs::Log>& entries, int leaderCommit);
 
   AppendEntries(int term, int leaderId, int prevLogIndex, int prevLogTerm,
                 int leaderCommit);
@@ -28,8 +29,10 @@ class AppendEntries : public Message {
   int getLeader() const;
   int getPreviousLogIdx() const;
   int getPreviousLogTerm() const;
-  const std::vector<std::string>& getEntries() const;
+  const std::vector<Logs::Log>& getEntries() const;
   int getLeaderCommit() const;
+
+  void setEntries(const std::vector<Logs::Log>& entries);
 
   bool isHeartbeat() const;
 
