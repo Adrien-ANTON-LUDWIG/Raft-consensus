@@ -38,19 +38,15 @@ void Client::update() {
     json query = recv(statusOpt.value());
     auto type = Message::getType(query);
     if (type == Message::Type::REPL_INFO)
-    {
-      MessageNS::REPL::InfoResponse response(m_speed, m_isCrashed, true, m_isStarted, m_id);
-      send(response, m_replRank);
-    } else if (type == Message::Type::REPL_START) {
-      m_isStarted = true;
-    } else if (type == Message::Type::REPL_CRASH) {
-      m_isCrashed = true;
-    } else if (type == Message::Type::REPL_SPEED) {
-      MessageNS::REPL::Speed speed(query);
-      m_speed = speed.getSpeed();
-    } else if (type == Message::Type::REPL_STOP) {
+      handleREPLInfo(query);
+    else if (type == Message::Type::REPL_START)
+      handleREPLStart(query);
+    else if (type == Message::Type::REPL_CRASH)
+      handleREPLCrash(query);
+    else if (type == Message::Type::REPL_SPEED)
+      handleREPLSpeed(query);
+    else if (type == Message::Type::REPL_STOP)
       exit(0);
-    }
   }
 
   if (!m_isStarted || m_isCrashed)

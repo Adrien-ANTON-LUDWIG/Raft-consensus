@@ -11,11 +11,12 @@ Info::Info(int originId)
 Info::Info(const json& data) : Message(data) {}
 
 InfoResponse::InfoResponse(SpeedType speed, bool isCrashed, bool isClient,
-                           bool isStarted, int originId)
+                           bool isStarted, bool isLeader, int originId)
     : Message(Type::REPL_INFO_RESPONSE, originId) {
   m_speed = speed;
   m_isCrashed = isCrashed, m_isClient = isClient;
   m_isStarted = isStarted;
+  m_isLeader = isLeader;
 }
 
 InfoResponse::InfoResponse(const json& data) : Message(data) {
@@ -23,6 +24,7 @@ InfoResponse::InfoResponse(const json& data) : Message(data) {
   m_isCrashed = data["isCrashed"];
   m_isClient = data["isClient"];
   m_isStarted = data["isStarted"];
+  m_isLeader = data["isLeader"];
 }
 
 json InfoResponse::toJSON() const {
@@ -32,6 +34,7 @@ json InfoResponse::toJSON() const {
   data["isCrashed"] = m_isCrashed;
   data["isClient"] = m_isClient;
   data["isStarted"] = m_isStarted;
+  data["isLeader"] = m_isLeader;
 
   return data;
 }
@@ -55,5 +58,7 @@ void InfoResponse::print() {
 
   if (m_isClient)
     os << "- Is started: " << (m_isStarted ? "YES" : "NO") << "\n";
+  else
+    os << "- Is leader: " << (m_isLeader ? "YES" : "NO") << "\n";
 }
 }  // namespace MessageNS::REPL

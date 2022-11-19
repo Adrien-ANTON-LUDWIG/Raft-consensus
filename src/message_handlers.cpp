@@ -3,7 +3,7 @@
 #include "messages/RPC/requestVote.hh"
 #include "messages/RPC/vote.hh"
 #include "messages/mpi_wrappers.hh"
-#include "messages/status.hh"
+#include "messages/redirect.hh"
 #include "server.hh"
 #include "spdlog/spdlog.h"
 

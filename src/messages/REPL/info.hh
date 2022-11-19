@@ -16,9 +16,10 @@ class InfoResponse : public Message {
   bool m_isCrashed;
   bool m_isClient;
   bool m_isStarted;
+  bool m_isLeader;
 
  public:
-  InfoResponse(SpeedType speed, bool isCrashed, bool isClient, bool isStarted,
+  InfoResponse(SpeedType speed, bool isCrashed, bool isClient, bool isStarted, bool isLeader,
                int originId);
   InfoResponse(const json& data);
 

@@ -1,16 +1,17 @@
 #include "server.hh"
 
+#include "messages/REPL/info.hh"
 #include "messages/RPC/appendEntries.hh"
 #include "messages/RPC/requestVote.hh"
 #include "messages/RPC/vote.hh"
 #include "messages/mpi_wrappers.hh"
+#include "messages/redirect.hh"
 #include "spdlog/spdlog.h"
-
-#include "messages/REPL/info.hh"
 
 using namespace MessageNS;
 
-Server::Server(int id, int world_size, int replRank) : ::REPL::Process(replRank) {
+Server::Server(int id, int world_size, int replRank)
+    : ::REPL::Process(replRank) {
   m_id = id;
   m_world_size = world_size;
 
@@ -27,30 +28,24 @@ Server::Server(int id, int world_size, int replRank) : ::REPL::Process(replRank)
 
 // GENERAL UPDATE
 void Server::update() {
-
   std::optional<MPI_Status> statusOpt = checkForMessage(m_replRank);
   if (statusOpt.has_value()) {
     json query = recv(statusOpt.value());
     auto type = Message::getType(query);
     if (type == Message::Type::REPL_INFO)
-    {
-      MessageNS::REPL::InfoResponse response(m_speed, m_isCrashed, false, false, m_id);
-      send(response, m_replRank);
-    }
+      handleREPLInfo(query);
     else if (type == Message::Type::REPL_CRASH)
-      m_isCrashed = true;
+      handleREPLCrash(query);
     else if (type == Message::Type::REPL_SPEED) {
-      MessageNS::REPL::Speed speed(query);
-      m_speed = speed.getSpeed();
-    }
-    else if (type == Message::Type::REPL_STOP) {
+      handleREPLSpeed(query);
+    } else if (type == Message::Type::REPL_STOP) {
+      m_logs.writeLogs(m_id);
       exit(0);
     }
   }
 
-  if (m_isCrashed)
-    return;
-  
+  if (m_isCrashed) return;
+
   sleep(m_speed);
 
   // Update the current_time
@@ -91,13 +86,17 @@ void Server::followerUpdate() {
   std::optional<MPI_Status> status = checkForMessage();
 
   if (status.has_value()) {
-    if (status->MPI_TAG == Message::RPC_REQUEST_VOTE)
+    if (status->MPI_TAG == Message::Type::RPC_REQUEST_VOTE)
       handleRequestVote(recv(*status));
-    else if (status->MPI_TAG == Message::Message::RPC_APPEND_ENTRIES)
+    else if (status->MPI_TAG == Message::Type::RPC_APPEND_ENTRIES)
       handleAppendEntries(recv(*status));
-    // else if receive cmd from client -> redirect to leader
-    else  // non expected or invalid message -> drop
+    else {  // non expected or invalid message -> drop
+      if (Message::isCMD(status->MPI_TAG)) {
+        Redirect redirection(m_leaderId, false, m_id);
+        send(redirection, status->MPI_SOURCE);
+      }
       dropMessage(recv(*status));
+    }
   }
 
   // Election timeout : convert to candidate
@@ -137,12 +136,17 @@ void Server::candidateUpdate() {
   std::optional<MPI_Status> status = checkForMessage();
 
   if (status.has_value()) {
-    if (status->MPI_TAG == Message::RPC_VOTE)
+    if (status->MPI_TAG == Message::Type::RPC_VOTE)
       handleVote(recv(*status));
-    else if (status->MPI_TAG == Message::RPC_APPEND_ENTRIES)
+    else if (status->MPI_TAG == Message::Type::RPC_APPEND_ENTRIES)
       handleAppendEntries(recv(*status));
-    else  // non expected or invalid message -> drop
+    else {  // non expected or invalid message -> drop
+      if (Message::isCMD(status->MPI_TAG)) {
+        Redirect redirection(-1, false, m_id);
+        send(redirection, status->MPI_SOURCE);
+      }
       dropMessage(recv(*status));
+    }
   }
 
   // • If election timeout elapses: start new election
@@ -171,11 +175,11 @@ void Server::leaderUpdate() {
   std::optional<MPI_Status> status = checkForMessage();
 
   if (status.has_value()) {
-    if (status->MPI_TAG == Message::RPC_REQUEST_VOTE)
+    if (status->MPI_TAG == Message::Type::RPC_REQUEST_VOTE)
       handleRequestVote(recv(*status));
-    else if (status->MPI_TAG == Message::RPC_APPEND_ENTRIES)
+    else if (status->MPI_TAG == Message::Type::RPC_APPEND_ENTRIES)
       handleAppendEntries(recv(*status));
-    else if (status->MPI_TAG == Message::RPC_APPEND_ENTRIES_RESPONSE)
+    else if (status->MPI_TAG == Message::Type::RPC_APPEND_ENTRIES_RESPONSE)
       handleAppendEntriesResponse(recv(*status));
 
     // If command received from client: append entry to local log,

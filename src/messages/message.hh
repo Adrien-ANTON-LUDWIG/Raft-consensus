@@ -11,7 +11,7 @@ namespace MessageNS {
 class Message {
  public:
   enum Type {
-    STATUS,
+    REDIRECT,
 
     // RPCs
     RPC_REQUEST_VOTE,

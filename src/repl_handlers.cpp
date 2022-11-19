@@ -9,14 +9,14 @@
 void Server::handleREPLInfo(const json& json) {
     MessageNS::REPL::Info info(json);
 
-    MessageNS::REPL::InfoResponse response(m_speed, m_isCrashed, false, true, m_id);
+    MessageNS::REPL::InfoResponse response(m_speed, m_isCrashed, false, true, m_state == LEADER, m_id);
     send(response, info.getOriginId());
 }
 
 void Client::handleREPLInfo(const json& json) {
     MessageNS::REPL::Info info(json);
 
-    MessageNS::REPL::InfoResponse response(m_speed, m_isCrashed, true, m_isStarted, m_id);
+    MessageNS::REPL::InfoResponse response(m_speed, m_isCrashed, true, m_isStarted, false, m_id);
     send(response, info.getOriginId());
 }
 

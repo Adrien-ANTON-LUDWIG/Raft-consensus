@@ -48,8 +48,8 @@ add_library(messages STATIC
     mpi_wrappers.hh
     responseToClient.cpp
     responseToClient.hh
-    status.cpp
-    status.hh
+    redirect.cpp
+    redirect.hh
     ${CMD_sources}
     ${RPC_sources}
     ${REPL_sources}
