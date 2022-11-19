@@ -34,7 +34,7 @@ void Server::update() {
     auto type = Message::getType(query);
     if (type == Message::Type::REPL_INFO)
     {
-      MessageNS::REPL::InfoResponse response(m_speed, m_isCrashed, true, true, m_id);
+      MessageNS::REPL::InfoResponse response(m_speed, m_isCrashed, false, false, m_id);
       send(response, m_replRank);
     }
     else if (type == Message::Type::REPL_CRASH)

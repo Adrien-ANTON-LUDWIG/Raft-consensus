@@ -55,7 +55,7 @@ int main(int argc, char** argv) {
   int replRank = client_count + server_count;
   if (my_rank < server_count)
   {
-    Server server(my_rank, world_size, replRank);
+    Server server(my_rank, server_count, replRank);
 
     while (true) {
       server.update();
