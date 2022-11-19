@@ -1,16 +1,22 @@
 BUILD_DIR := ./build
+LOG_DIR := ./logs
 
-build:
+all: build
+
+setup:
 	mkdir -p $(BUILD_DIR)
-	cd build; cmake -DCMAKE_BUILD_TYPE=Release ..
-	cd build; make -j
+	mkdir -p $(LOG_DIR)
 
-debug:
-	mkdir -p $(BUILD_DIR)
-	cd build; cmake -DCMAKE_BUILD_TYPE=Debug ..
-	cd build; make -j
+build: setup
+	cd $(BUILD_DIR); cmake -DCMAKE_BUILD_TYPE=Release ..
+	cd $(BUILD_DIR); make -j
 
-.PHONY: clean
+debug: setup
+	cd $(BUILD_DIR); cmake -DCMAKE_BUILD_TYPE=Debug ..
+	cd $(BUILD_DIR); make -j
+
+.PHONY: clean setup
 
 clean:
 	rm -r $(BUILD_DIR)
+	rm -r $(LOG_DIR)
