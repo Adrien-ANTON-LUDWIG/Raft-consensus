@@ -57,8 +57,7 @@ int main(int argc, char** argv) {
   {
     Server server(my_rank, server_count, replRank);
 
-    while (true) {
-      server.update();
+    while (server.update()) {
     }
   }
   else if (my_rank < replRank)
@@ -67,8 +66,7 @@ int main(int argc, char** argv) {
     if (argc == 4)
       client.loadCommands(argv[3]);
 
-    while (true) {
-      client.update();
+    while (client.update()) {
     }
   }
   else if (my_rank == replRank) {

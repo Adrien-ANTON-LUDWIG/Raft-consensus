@@ -64,7 +64,7 @@ class Server : ::REPL::Process {
   Server(int id, int world_size, int replRank);
 
   // GENERAL UPDATE
-  void update();
+  bool update();
 
   // FOLLOWER
   void becomeFollower();

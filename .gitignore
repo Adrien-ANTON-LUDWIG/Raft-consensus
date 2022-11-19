@@ -45,5 +45,6 @@ resources
 # Libs
 !libs/*.a
 
-# CMake
+# Build
 build/
+logs

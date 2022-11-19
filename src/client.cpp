@@ -32,7 +32,7 @@ Client::Client(int id, int nbServer, int replRank) : ::REPL::Process(replRank)  
   m_isStarted = false;
 }
 
-void Client::update() {
+bool Client::update() {
   std::optional<MPI_Status> statusOpt = checkForMessage(m_replRank);
   if (statusOpt.has_value()) {
     json query = recv(statusOpt.value());
@@ -46,14 +46,14 @@ void Client::update() {
     else if (type == Message::Type::REPL_SPEED)
       handleREPLSpeed(query);
     else if (type == Message::Type::REPL_STOP)
-      exit(0);
+      return false;
   }
 
   if (!m_isStarted || m_isCrashed)
-    return;
+    return true;
 
   if (std::chrono::duration<float, std::milli>(std::chrono::system_clock::now() - m_speedCheckpoint) < std::chrono::milliseconds(m_speed))
-    return;
+    return true;
 
   if (m_currentCommand < m_commands.size()) {
     // Update time
@@ -68,7 +68,7 @@ void Client::update() {
     // Receive response
     std::optional<MPI_Status> status = checkForMessage();
 
-    if (!status.has_value()) return;
+    if (!status.has_value()) return true;
 
     ResponseToClient response;
 
@@ -91,6 +91,8 @@ void Client::update() {
       m_leaderId = response.getLeaderId();
     }
   }
+
+  return true;
 }
 
 void Client::loadCommands(const std::string& path) {

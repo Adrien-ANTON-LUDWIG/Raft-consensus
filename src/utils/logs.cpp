@@ -76,7 +76,7 @@ void Logs::writeLogs(int serverID) {
   std::ofstream file(filename);
 
   for (Log log : m_log) {
-    json command = log.getCommand(); 
+    json command = log.getCommand();
     command.erase("m_uuid");
     command.erase("m_originId");
     file << command.dump() << std::endl;

@@ -27,7 +27,7 @@ Server::Server(int id, int world_size, int replRank)
 }
 
 // GENERAL UPDATE
-void Server::update() {
+bool Server::update() {
   std::optional<MPI_Status> statusOpt = checkForMessage(m_replRank);
   if (statusOpt.has_value()) {
     json query = recv(statusOpt.value());
@@ -40,11 +40,11 @@ void Server::update() {
       handleREPLSpeed(query);
     } else if (type == Message::Type::REPL_STOP) {
       m_logs.writeLogs(m_id);
-      exit(0);
+      return false;
     }
   }
 
-  if (m_isCrashed) return;
+  if (m_isCrashed) return true;
 
   sleep(m_speed);
 
@@ -65,6 +65,8 @@ void Server::update() {
       followerUpdate();
       break;
   }
+
+  return true;
 }
 
 // FOLLOWER
