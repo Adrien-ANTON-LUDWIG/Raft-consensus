@@ -67,7 +67,7 @@ void Server::followerUpdate() {
       handleRequestVote(recv(*status));
     else if (status->MPI_TAG == Message::Message::RPC_APPEND_ENTRIES)
       handleAppendEntries(recv(*status));
-    // else if CMD from client -> reject and redirect to leader
+    // else if receive cmd from client -> redirect to leader
     else  // non expected or invalid message -> drop
       dropMessage(recv(*status));
   }

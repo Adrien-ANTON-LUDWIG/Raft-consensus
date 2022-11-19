@@ -1,5 +1,8 @@
 #include "logs.hh"
 
+#include <iostream>
+#include <fstream>
+
 // LOG
 
 Logs::Log::Log(int term, const json &command)
@@ -66,3 +69,19 @@ void Logs::updateCommitIndex(int leaderCommitIndex) {
 bool Logs::contains(int index) const {
   return 0 < index && index < int(m_log.size());
 }
+
+void Logs::writeLogs(int serverID) {
+  std::string filename = "log_server_" + serverID;
+
+  std::ofstream file(filename);
+
+  for (Log log : m_log) {
+    json command = log.getCommand(); 
+    command.erase("m_uuid");
+    command.erase("m_originId");
+    file << command.dump() << std::endl;
+  }
+
+  file.close();
+}
+

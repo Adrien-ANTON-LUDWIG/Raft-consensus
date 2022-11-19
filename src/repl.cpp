@@ -35,7 +35,7 @@ static void parseCommand(const std::string &line) {
   } else if (cmd == "exit") {
     stop();
   } else {
-    std::cerr << "Unkown command.\n";
+    std::cerr << "Unknown command.\n";
   }
 }
 
