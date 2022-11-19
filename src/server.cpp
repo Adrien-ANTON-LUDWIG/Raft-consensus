@@ -37,13 +37,18 @@ void Server::update() {
       MessageNS::REPL::InfoResponse response(m_speed, m_isCrashed, true, true, m_id);
       send(response, m_replRank);
     }
-    else if (type == Message::Type::REPL_CRASH) {
+    else if (type == Message::Type::REPL_CRASH)
       m_isCrashed = true;
+    else if (type == Message::Type::REPL_SPEED) {
+      MessageNS::REPL::Speed speed(query);
+      m_speed = speed.getSpeed();
     }
   }
 
   if (m_isCrashed)
     return;
+  
+  sleep(m_speed);
 
   // Update the current_time
   m_current_time = std::chrono::system_clock::now();

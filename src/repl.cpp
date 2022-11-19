@@ -49,7 +49,7 @@ static bool getResponse(const MessageNS::Message& query, int rank, MessageNS::Me
     response = waitForResponse(rank);
     if (auto responseType = MessageNS::Message::getType(response) != type)
     {
-      std::cerr << "Implementation error. Bad response type " << responseType << ".\n";
+      std::cerr << "Implementation error. Bad response type " << responseType << "." << std::endl;
       return false;
     }
 
@@ -66,7 +66,7 @@ static void parseCommand(const std::string &line) {
   auto &cmd = tokens[0];
   if (cmd == "speed") {
     if (tokens.size() < 3) {
-      std::cerr << "Missing speed type. Usage: speed low|medium|high\n";
+      std::cerr << "Ill formed command. Usage: speed <rank> low|medium|high\n";
       return;
     }
 
@@ -75,13 +75,16 @@ static void parseCommand(const std::string &line) {
 
     auto &type = tokens[2];
     if (type == "low") {
-      // TODO
+      MessageNS::REPL::Speed message(MessageNS::REPL::SpeedType::LOW, g_rank);
+      send(message, rank);
     } else if (type == "medium") {
-      // TODO
+      MessageNS::REPL::Speed message(MessageNS::REPL::SpeedType::MEDIUM, g_rank);
+      send(message, rank);
     } else if (type == "high") {
-      // TODO
+      MessageNS::REPL::Speed message(MessageNS::REPL::SpeedType::HIGH, g_rank);
+      send(message, rank);
     } else {
-      std::cerr << "Invalid speed type. Usage: speed low|medium|high\n";
+      std::cerr << "Invalid speed type. Usage: speed <rank> low|medium|high\n";
     }
   } else if (cmd == "start") {
     if (tokens.size() < 2) {

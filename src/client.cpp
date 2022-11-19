@@ -5,6 +5,7 @@
 #include "messages/CMD/load.hh"
 #include "messages/mpi_wrappers.hh"
 #include "messages/REPL/info.hh"
+#include "spdlog/spdlog.h"
 
 using namespace MessageNS;
 
@@ -26,10 +27,16 @@ void Client::update() {
       m_isStarted = true;
     } else if (type == Message::Type::REPL_CRASH) {
       m_isCrashed = true;
+    } else if (type == Message::Type::REPL_SPEED) {
+      MessageNS::REPL::Speed speed(query);
+      m_speed = speed.getSpeed();
     }
   }
 
   if (!m_isStarted || m_isCrashed)
+    return;
+
+  if (std::chrono::duration<float, std::milli>(std::chrono::system_clock::now() - m_speedCheckpoint) < std::chrono::milliseconds(m_speed))
     return;
 
   // Create message

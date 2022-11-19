@@ -10,6 +10,7 @@ class Process {
   MessageNS::REPL::SpeedType m_speed = MessageNS::REPL::SpeedType::HIGH;
   bool m_isCrashed = false;
   int m_replRank;
+  std::chrono::_V2::system_clock::time_point m_speedCheckpoint;
 
  public:
   Process(int replRank);
