@@ -20,6 +20,7 @@ class Message {
     REPL_CRASH,
     REPL_START,
     REPL_INFO,
+    REPL_STOP,
     CMD_LOAD,
     CMD_LIST,
     CMD_DELETE,

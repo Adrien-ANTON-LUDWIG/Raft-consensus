@@ -30,6 +30,8 @@ void Client::update() {
     } else if (type == Message::Type::REPL_SPEED) {
       MessageNS::REPL::Speed speed(query);
       m_speed = speed.getSpeed();
+    } else if (type == Message::Type::REPL_STOP) {
+      exit(0);
     }
   }
 

@@ -25,6 +25,8 @@ set (REPL_sources
     REPL/speed.hh
     REPL/start.cpp
     REPL/start.hh
+    REPL/stop.hh
+    REPL/stop.cpp
 )
 
 add_library(messages STATIC

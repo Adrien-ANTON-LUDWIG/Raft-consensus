@@ -6,6 +6,9 @@
 
 #include "messages/mpi_wrappers.hh"
 #include "messages/REPL/info.hh"
+#include "messages/REPL/start.hh"
+#include "messages/REPL/crash.hh"
+#include "messages/REPL/stop.hh"
 
 namespace REPL {
 static int g_rank = -1;
@@ -88,15 +91,20 @@ static void parseCommand(const std::string &line) {
     }
   } else if (cmd == "start") {
     if (tokens.size() < 2) {
-      std::cerr << "Missing rank. Usage: start <rank>\n";
+      std::cerr << "Missing rank. Usage: start <rank>" << std::endl;
       return;
     }
 
     if (!parseRank(tokens[1], rank))
       return;
 
+    if (rank < 0 || rank >= g_clientCount) {
+      std::cerr << "Bad rank. Should be in range [0," << g_clientCount << "]." << std::endl;
+      return;
+    }
 
-
+    MessageNS::REPL::Start message(g_rank);
+    send(message, rank);
   } else if (cmd == "crash") {
     if (tokens.size() < 2) {
       std::cerr << "Missing rank. Usage: crash <rank>\n";
@@ -106,6 +114,8 @@ static void parseCommand(const std::string &line) {
     if (!parseRank(tokens[1], rank))
       return;
 
+    MessageNS::REPL::Crash message(g_rank);
+    send(message, rank);
     
   } else if (cmd == "info") {
     if (tokens.size() < 2) {
@@ -155,6 +165,12 @@ void start(int clientCount, int serverCount) {
 void stop() {
   g_isRunning = false;
   std::cout << "REPL CLI disabled.\n";
+  MessageNS::REPL::Stop message(g_rank);
+  for (int rank = 0; rank <= g_clientCount + g_serverCount; rank++) {
+    send(message, rank);
+  }
+
+  exit(0);
 }
 
 void headlessExec(const std::string &command) {
