@@ -104,9 +104,9 @@ static void parseCommand(const std::string &line) {
 
     if (!parseRank(tokens[1], rank)) return;
 
-    if (rank < 0 || rank >= g_clientCount) {
+    if (rank < g_serverCount || rank >= g_serverCount + g_clientCount) {
       std::cerr << "Bad rank. Should be in range [" << g_serverCount << ","
-                << g_serverCount + g_clientCount << "]." << std::endl;
+                << g_rank - 1 << "]." << std::endl;
       return;
     }
 

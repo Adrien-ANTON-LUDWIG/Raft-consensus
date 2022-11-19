@@ -6,6 +6,7 @@
 #include "messages/RPC/vote.hh"
 #include "messages/mpi_wrappers.hh"
 #include "messages/redirect.hh"
+#include "messages/CMD/loadResponse.hh"
 #include "spdlog/spdlog.h"
 
 using namespace MessageNS;
@@ -94,7 +95,7 @@ void Server::followerUpdate() {
       handleAppendEntries(recv(*status));
     else {  // non expected or invalid message -> drop
       if (Message::isCMD(status->MPI_TAG)) {
-        Redirect redirection(m_leaderId, false, m_id);
+        Redirect redirection(m_leaderId, m_id);
         send(redirection, status->MPI_SOURCE);
       }
       dropMessage(recv(*status));
@@ -144,7 +145,7 @@ void Server::candidateUpdate() {
       handleAppendEntries(recv(*status));
     else {  // non expected or invalid message -> drop
       if (Message::isCMD(status->MPI_TAG)) {
-        Redirect redirection(-1, false, m_id);
+        Redirect redirection(-1, m_id);
         send(redirection, status->MPI_SOURCE);
       }
       dropMessage(recv(*status));
@@ -186,8 +187,13 @@ void Server::leaderUpdate() {
 
     // If command received from client: append entry to local log,
     // respond after entry applied to state machine (§5.3)
-    else if (Message::isCMD(status->MPI_TAG))
+    else if (Message::isCMD(status->MPI_TAG)) {
+      std::cout << "Message received by leader is cmd" << std::endl;
       m_logs.addLog(m_term, recv(*status));
+      json data = recv(*status);
+      if (status->MPI_TAG == Message::Type::CMD_LOAD)
+        handleLoad(recv(*status));
+    }
 
     else  // non expected or invalid message -> drop
       dropMessage(recv(*status));

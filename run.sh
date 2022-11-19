@@ -16,6 +16,7 @@ print_help()
     echo -e 'Flags:'
     echo '-c, --client_n Set client count. Default to '"${client_count}."
     echo '-s, --server_n Set server count. Default to '"${server_count}."
+    echo '--commands     Set the command file to execute. Default to none.'
 }
 
 while [ $# -gt 0 ]; do

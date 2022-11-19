@@ -47,4 +47,7 @@ resources
 
 # Build
 build/
-logs
+logs/
+
+# Tests
+tests/

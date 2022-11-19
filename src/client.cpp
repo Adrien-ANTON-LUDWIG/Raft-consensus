@@ -12,13 +12,14 @@
 #include "messages/CMD/listResponse.hh"
 #include "messages/CMD/load.hh"
 #include "messages/CMD/loadResponse.hh"
-#include "messages/mpi_wrappers.hh"
 #include "messages/REPL/info.hh"
+#include "messages/redirect.hh"
+#include "messages/mpi_wrappers.hh"
 #include "spdlog/spdlog.h"
 
 using namespace MessageNS;
 
-Client::Client(int id, int nbServer, int replRank) : ::REPL::Process(replRank)  {
+Client::Client(int id, int nbServer, int replRank) : ::REPL::Process(replRank) {
   m_id = id;
   m_nbServer = nbServer;
 
@@ -49,10 +50,11 @@ bool Client::update() {
       return false;
   }
 
-  if (!m_isStarted || m_isCrashed)
-    return true;
+  if (!m_isStarted || m_isCrashed) return true;
 
-  if (std::chrono::duration<float, std::milli>(std::chrono::system_clock::now() - m_speedCheckpoint) < std::chrono::milliseconds(m_speed))
+  if (std::chrono::duration<float, std::milli>(
+          std::chrono::system_clock::now() - m_speedCheckpoint) <
+      std::chrono::milliseconds(m_speed))
     return true;
 
   if (m_currentCommand < m_commands.size()) {
@@ -72,17 +74,21 @@ bool Client::update() {
 
     ResponseToClient response;
 
+    json data = recv(*status);
+    std::cout << data << std::endl;
     // Handle responses
     if (status->MPI_TAG == Message::Type::CMD_LOAD_RESPONSE) {
-      CMD::LoadResponse response(recv(*status));
+      CMD::LoadResponse response(data);
 
       if (response.getSuccess()) m_filesUID.push_back(response.getFileUID());
     } else if (status->MPI_TAG == Message::Type::CMD_LIST_RESPONSE) {
-      CMD::ListResponse response(recv(*status));
+      CMD::ListResponse response(data);
     } else if (status->MPI_TAG == Message::Type::CMD_DELETE_RESPONSE) {
-      CMD::DeleteResponse response(recv(*status));
+      CMD::DeleteResponse response(data);
     } else if (status->MPI_TAG == Message::Type::CMD_APPEND_RESPONSE) {
-      CMD::AppendResponse response(recv(*status));
+      CMD::AppendResponse response(data);
+    } else if (status->MPI_TAG == Message::Type::REDIRECT) {
+      Redirect response(data);
     }
 
     if (response.getSuccess()) {
@@ -101,12 +107,13 @@ void Client::loadCommands(const std::string& path) {
     std::string line;
     int client_rank = -1;
     while (std::getline(stream, line)) {
+      if (line.length() == 0) continue;
+
       if (line[0] == '-') {
         client_rank++;
-      } else if (client_rank == m_id) {
+      } else if (client_rank == m_id - m_nbServer) {
         if (line[0] == '$') {
-          // TODO specials instructions
-          std::string cmd = line.substr(line.find(' '));
+          return;
         } else if (line[0] != '#') {
           size_t commentStart = line.find('#');
           if (commentStart != std::string::npos)
@@ -126,12 +133,8 @@ Message Client::parseCommand(const std::string& command) {
   std::string t;
 
   while (iss >> t && tokens.size() < 3) tokens.push_back(t);
-  getline(iss, t);
-  tokens.push_back(t);
 
   auto& cmd = tokens[0];
-  cmd == "LOAD";
-
   if (cmd == "LOAD") {
     if (tokens.size() < 2)
       throw std::invalid_argument(

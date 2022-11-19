@@ -5,7 +5,7 @@
 namespace MessageNS {
 class Redirect : public ResponseToClient {
   public:
-    Redirect(int leaderId, bool success, int originId);
+    Redirect(int leaderId, int originId);
     Redirect(const json& data);
 };
 }  // namespace MessageNS

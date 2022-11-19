@@ -1,7 +1,7 @@
 #include "redirect.hh"
 
 namespace MessageNS {
-Redirect::Redirect(int leaderId, bool success, int originId) : ResponseToClient(leaderId, success, Type::REDIRECT, originId) {
+Redirect::Redirect(int leaderId, int originId) : ResponseToClient(leaderId, false, Type::REDIRECT, originId) {
 
 }
 

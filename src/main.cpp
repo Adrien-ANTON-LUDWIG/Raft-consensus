@@ -62,7 +62,7 @@ int main(int argc, char** argv) {
   }
   else if (my_rank < replRank)
   {
-    Client client(my_rank, world_size, replRank);
+    Client client(my_rank, server_count, replRank);
     if (argc == 4)
       client.loadCommands(argv[3]);
 
