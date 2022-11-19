@@ -18,7 +18,7 @@ static int g_serverCount = -1;
 static bool g_isHeadlessRun = false;
 
 static void printRanks() {
-  std::cout << "Client ranks: [0, " << g_clientCount - 1 << "] | Server ranks: [" << g_clientCount << ", " << g_clientCount + g_serverCount - 1 << "]\n";
+  std::cout << "Server ranks: [0, " << g_serverCount - 1 << "] | Client ranks: [" << g_serverCount << ", " << g_clientCount + g_serverCount - 1 << "]\n";
 }
 
 static void printHelp() {
@@ -99,7 +99,7 @@ static void parseCommand(const std::string &line) {
       return;
 
     if (rank < 0 || rank >= g_clientCount) {
-      std::cerr << "Bad rank. Should be in range [0," << g_clientCount << "]." << std::endl;
+      std::cerr << "Bad rank. Should be in range [" << g_serverCount << "," << g_serverCount + g_clientCount << "]." << std::endl;
       return;
     }
 

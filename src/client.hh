@@ -38,7 +38,7 @@ class Client : ::REPL::Process {
  public:
   Client(int id, int nbServer, int replRank);
 
-  void run();
+  void update();
 
   void loadCommands(const std::string& path);
   MessageNS::Message parseCommand(const std::string& command);

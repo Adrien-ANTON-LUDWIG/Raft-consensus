@@ -67,7 +67,9 @@ int main(int argc, char** argv) {
     if (argc == 4)
       client.loadCommands(argv[3]);
 
-    client.run();
+    while (true) {
+      client.update();
+    }
   }
   else if (my_rank == replRank) {
     REPL::init(my_rank);

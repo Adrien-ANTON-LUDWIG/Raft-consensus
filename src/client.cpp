@@ -32,7 +32,7 @@ Client::Client(int id, int nbServer, int replRank) : ::REPL::Process(replRank)  
   m_isStarted = false;
 }
 
-void Client::run() {
+void Client::update() {
   std::optional<MPI_Status> statusOpt = checkForMessage(m_replRank);
   if (statusOpt.has_value()) {
     json query = recv(statusOpt.value());
@@ -59,7 +59,7 @@ void Client::run() {
   if (std::chrono::duration<float, std::milli>(std::chrono::system_clock::now() - m_speedCheckpoint) < std::chrono::milliseconds(m_speed))
     return;
 
-  while (m_currentCommand < m_commands.size()) {
+  if (m_currentCommand < m_commands.size()) {
     // Update time
     m_currentTime = std::chrono::system_clock::now();
 
@@ -72,7 +72,7 @@ void Client::run() {
     // Receive response
     std::optional<MPI_Status> status = checkForMessage();
 
-    if (!status.has_value()) continue;
+    if (!status.has_value()) return;
 
     ResponseToClient response;
 
