@@ -58,4 +58,5 @@ class Logs {
 
   bool contains(int index) const;
 
+  void writeLogs(int serverID);
 };
