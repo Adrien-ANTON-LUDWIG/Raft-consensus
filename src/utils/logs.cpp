@@ -71,7 +71,7 @@ bool Logs::contains(int index) const {
 }
 
 void Logs::writeLogs(int serverID) {
-  std::string filename = "log_server_" + serverID;
+  std::string filename = "logs/log_server_" + std::to_string(serverID) + ".log";
 
   std::ofstream file(filename);
 
