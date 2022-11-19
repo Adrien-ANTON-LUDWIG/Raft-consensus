@@ -1,4 +1,16 @@
 set(CMD_sources
+    CMD/append.cpp
+    CMD/append.hh
+    CMD/appendResponse.cpp
+    CMD/appendResponse.hh
+    CMD/delete.cpp
+    CMD/delete.hh
+    CMD/deleteResponse.cpp
+    CMD/deleteResponse.hh
+    CMD/list.cpp
+    CMD/list.hh
+    CMD/listResponse.cpp
+    CMD/listResponse.hh
     CMD/load.cpp
     CMD/load.hh
     CMD/loadResponse.cpp

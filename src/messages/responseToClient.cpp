@@ -13,6 +13,10 @@ ResponseToClient::ResponseToClient(const json& data) : Message(data) {
   m_success = data["success"];
 }
 
+int ResponseToClient::getLeaderId() const { return m_leaderId; }
+
+bool ResponseToClient::getSuccess() const { return m_success; }
+
 json ResponseToClient::toJSON() const {
   json data = Message::toJSON();
 

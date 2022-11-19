@@ -12,6 +12,8 @@ class LoadResponse : public ResponseToClient {
                int originId);
   LoadResponse(const json& data);
 
+  uuids::uuid getFileUID() const;
+
   virtual json toJSON() const override;
 };
 }  // namespace MessageNS::CMD

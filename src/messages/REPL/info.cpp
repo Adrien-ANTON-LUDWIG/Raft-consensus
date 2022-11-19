@@ -12,7 +12,7 @@ Info::Info(const json& data) : Message(data) {}
 
 InfoResponse::InfoResponse(SpeedType speed, bool isCrashed, bool isClient,
                            bool isStarted, int originId)
-    : Message(Type::RESP_REPL_INFO, originId) {
+    : Message(Type::REPL_INFO_RESPONSE, originId) {
   m_speed = speed;
   m_isCrashed = isCrashed, m_isClient = isClient;
   m_isStarted = isStarted;

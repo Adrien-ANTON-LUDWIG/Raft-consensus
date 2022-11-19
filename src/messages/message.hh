@@ -12,21 +12,30 @@ class Message {
  public:
   enum Type {
     STATUS,
+
+    // RPCs
     RPC_REQUEST_VOTE,
     RPC_VOTE,
     RPC_APPEND_ENTRIES,
     RPC_APPEND_ENTRIES_RESPONSE,
+
+    // REPL
     REPL_SPEED,
     REPL_CRASH,
     REPL_START,
     REPL_INFO,
+    REPL_INFO_RESPONSE,
     REPL_STOP,
+
+    // CMDs
     CMD_LOAD,
     CMD_LIST,
     CMD_DELETE,
     CMD_APPEND,
-    RESP_CMD_LOAD,
-    RESP_REPL_INFO,
+    CMD_LOAD_RESPONSE,
+    CMD_LIST_RESPONSE,
+    CMD_DELETE_RESPONSE,
+    CMD_APPEND_RESPONSE,
   };
 
   static bool isCMD(int type);
@@ -39,6 +48,7 @@ class Message {
   int m_originId;
 
  public:
+  Message() = default;
   Message(Type type, int originId);
   Message(const json& data);
 

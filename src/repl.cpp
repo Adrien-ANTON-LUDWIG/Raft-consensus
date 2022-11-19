@@ -128,7 +128,7 @@ static void parseCommand(const std::string &line) {
 
     MessageNS::REPL::Info query(g_rank);
     json response;
-    if (!getResponse(query, rank, MessageNS::Message::Type::RESP_REPL_INFO, response)) return;
+    if (!getResponse(query, rank, MessageNS::Message::Type::REPL_INFO_RESPONSE, response)) return;
 
     MessageNS::REPL::InfoResponse infos(response);
     infos.print();
