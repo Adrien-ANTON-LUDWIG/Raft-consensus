@@ -28,77 +28,80 @@ Client::Client(int id, int nbServer, int replRank) : ::REPL::Process(replRank) {
   m_startTime = std::chrono::system_clock::now();
   m_currentTime = std::chrono::system_clock::now();
 
-  // REPL
+  // REPL attributes
   m_isCrashed = false;
   m_isStarted = false;
 }
 
-bool Client::update() {
-  std::optional<MPI_Status> statusOpt = checkForMessage(m_replRank);
-  if (statusOpt.has_value()) {
-    json query = recv(statusOpt.value());
-    auto type = Message::getType(query);
-    if (type == Message::Type::REPL_INFO)
-      handleREPLInfo(query);
-    else if (type == Message::Type::REPL_START)
-      handleREPLStart(query);
-    else if (type == Message::Type::REPL_CRASH)
-      handleREPLCrash(query);
-    else if (type == Message::Type::REPL_SPEED)
-      handleREPLSpeed(query);
-    else if (type == Message::Type::REPL_STOP)
-      return false;
+void Client::run() {
+  bool isRunning = true;
+
+  while (isRunning) {
+    std::optional<MPI_Status> statusOpt = checkForMessage(m_replRank);
+    if (statusOpt.has_value()) {
+      json query = recv(statusOpt.value());
+      auto type = Message::getType(query);
+      if (type == Message::Type::REPL_INFO)
+        handleREPLInfo(query);
+      else if (type == Message::Type::REPL_START)
+        handleREPLStart(query);
+      else if (type == Message::Type::REPL_CRASH)
+        handleREPLCrash(query);
+      else if (type == Message::Type::REPL_SPEED)
+        handleREPLSpeed(query);
+      else if (type == Message::Type::REPL_STOP) {
+        isRunning = false;
+        continue;
+      }
+    }
+
+    if (!m_isStarted || m_isCrashed) continue;
+
+    if (std::chrono::duration<float, std::milli>(
+            std::chrono::system_clock::now() - m_speedCheckpoint) <
+        std::chrono::milliseconds(m_speed))
+      continue;
+
+    if (m_currentCommand < m_commands.size()) {
+      // Update currrent time
+      m_currentTime = std::chrono::system_clock::now();
+
+      if (m_currentTime - m_startTime > m_requestTimeout) {
+        // Send request to the known leader
+        send(m_commands[m_currentCommand], m_leaderId);
+        m_startTime = std::chrono::system_clock::now();
+      }
+
+      // Check if response received
+      std::optional<MPI_Status> status = checkForMessage();
+
+      if (!status.has_value()) continue;
+
+      ResponseToClient response;
+
+      // Handle response
+      json data = recv(*status);
+      if (status->MPI_TAG == Message::Type::CMD_LOAD_RESPONSE) {
+        CMD::LoadResponse response(data);
+
+        if (response.getSuccess()) m_filesUID.push_back(response.getFileUID());
+      } else if (status->MPI_TAG == Message::Type::CMD_LIST_RESPONSE) {
+        CMD::ListResponse response(data);
+      } else if (status->MPI_TAG == Message::Type::CMD_DELETE_RESPONSE) {
+        CMD::DeleteResponse response(data);
+      } else if (status->MPI_TAG == Message::Type::CMD_APPEND_RESPONSE) {
+        CMD::AppendResponse response(data);
+      } else if (status->MPI_TAG == Message::Type::REDIRECT) {
+        Redirect response(data);
+      }
+
+      if (response.getSuccess()) {
+        m_currentCommand++; // Increase counter to use the next command during next loop
+      } else {
+        m_leaderId = response.getLeaderId(); // Update known leader
+      }
+    }
   }
-
-  if (!m_isStarted || m_isCrashed) return true;
-
-  if (std::chrono::duration<float, std::milli>(
-          std::chrono::system_clock::now() - m_speedCheckpoint) <
-      std::chrono::milliseconds(m_speed))
-    return true;
-
-  if (m_currentCommand < m_commands.size()) {
-    // Update time
-    m_currentTime = std::chrono::system_clock::now();
-
-    if (m_currentTime - m_startTime > m_requestTimeout) {
-      // Send request
-      send(m_commands[m_currentCommand], m_leaderId);
-      m_startTime = std::chrono::system_clock::now();
-    }
-
-    // Receive response
-    std::optional<MPI_Status> status = checkForMessage();
-
-    if (!status.has_value()) return true;
-
-    ResponseToClient response;
-
-    json data = recv(*status);
-    std::cout << data << std::endl;
-    // Handle responses
-    if (status->MPI_TAG == Message::Type::CMD_LOAD_RESPONSE) {
-      CMD::LoadResponse response(data);
-
-      if (response.getSuccess()) m_filesUID.push_back(response.getFileUID());
-    } else if (status->MPI_TAG == Message::Type::CMD_LIST_RESPONSE) {
-      CMD::ListResponse response(data);
-    } else if (status->MPI_TAG == Message::Type::CMD_DELETE_RESPONSE) {
-      CMD::DeleteResponse response(data);
-    } else if (status->MPI_TAG == Message::Type::CMD_APPEND_RESPONSE) {
-      CMD::AppendResponse response(data);
-    } else if (status->MPI_TAG == Message::Type::REDIRECT) {
-      Redirect response(data);
-    }
-
-    if (response.getSuccess()) {
-      m_currentCommand++;
-    } else {
-      m_leaderId = response.getLeaderId();
-    }
-  }
-
-  return true;
 }
 
 void Client::loadCommands(const std::string& path) {
@@ -109,12 +112,13 @@ void Client::loadCommands(const std::string& path) {
     while (std::getline(stream, line)) {
       if (line.length() == 0) continue;
 
-      if (line[0] == '-') {
+      if (line[0] == '-') { // Start of the commands for the next client
         client_rank++;
       } else if (client_rank == m_id - m_nbServer) {
-        if (line[0] == '$') {
+        if (line[0] == '$') { // Start of REPL commands
           return;
         } else if (line[0] != '#') {
+          // Remove comments from line
           size_t commentStart = line.find('#');
           if (commentStart != std::string::npos)
             line = line.substr(0, commentStart);

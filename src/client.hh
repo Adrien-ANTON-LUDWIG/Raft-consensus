@@ -31,16 +31,24 @@ class Client : ::REPL::Process {
   std::chrono::_V2::system_clock::time_point m_startTime;
   std::chrono::_V2::system_clock::time_point m_currentTime;
 
-  // REPL
+  /**
+   * REPL related attributes
+   */
   bool m_isCrashed;
   bool m_isStarted;
 
  public:
   Client(int id, int nbServer, int replRank);
 
-  bool update();
+  /// @brief Main loop of the client
+  void run();
 
+  /// @brief Load a commands file
+  /// @param path 
   void loadCommands(const std::string& path);
+  /// @brief Parse a command instruction
+  /// @param command 
+  /// @return The message to send
   MessageNS::Message parseCommand(const std::string& command);
 
   // REPL HANDLERS

@@ -3,6 +3,7 @@
 #include "message.hh"
 
 namespace MessageNS {
+/// @brief Base class to every messages used to respond to a client.
 class ResponseToClient : public Message {
  protected:
   int m_leaderId;

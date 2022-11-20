@@ -1,12 +1,12 @@
 #include "server.hh"
 
+#include "messages/CMD/loadResponse.hh"
 #include "messages/REPL/info.hh"
 #include "messages/RPC/appendEntries.hh"
 #include "messages/RPC/requestVote.hh"
 #include "messages/RPC/vote.hh"
 #include "messages/mpi_wrappers.hh"
 #include "messages/redirect.hh"
-#include "messages/CMD/loadResponse.hh"
 #include "spdlog/spdlog.h"
 
 using namespace MessageNS;
@@ -27,47 +27,49 @@ Server::Server(int id, int world_size, int replRank)
   spdlog::info("{}: Election timeout: {}", m_id, m_election_timeout.count());
 }
 
-// GENERAL UPDATE
-bool Server::update() {
-  std::optional<MPI_Status> statusOpt = checkForMessage(m_replRank);
-  if (statusOpt.has_value()) {
-    json query = recv(statusOpt.value());
-    auto type = Message::getType(query);
-    if (type == Message::Type::REPL_INFO)
-      handleREPLInfo(query);
-    else if (type == Message::Type::REPL_CRASH)
-      handleREPLCrash(query);
-    else if (type == Message::Type::REPL_SPEED) {
-      handleREPLSpeed(query);
-    } else if (type == Message::Type::REPL_STOP) {
-      m_logs.writeLogs(m_id);
-      return false;
+void Server::run() {
+  bool isRunning = true;
+
+  while (isRunning) {
+    std::optional<MPI_Status> statusOpt = checkForMessage(m_replRank);
+    if (statusOpt.has_value()) {
+      json query = recv(statusOpt.value());
+      auto type = Message::getType(query);
+      if (type == Message::Type::REPL_INFO)
+        handleREPLInfo(query);
+      else if (type == Message::Type::REPL_CRASH)
+        handleREPLCrash(query);
+      else if (type == Message::Type::REPL_SPEED) {
+        handleREPLSpeed(query);
+      } else if (type == Message::Type::REPL_STOP) {
+        m_logs.writeLogs(m_id);
+        isRunning = false;
+        continue;
+      }
+    }
+
+    if (m_isCrashed) continue;
+
+    sleep(m_speed);
+
+    // Update the current_time
+    m_current_time = std::chrono::system_clock::now();
+
+    // Apply committed logs
+    m_logs.apply();
+
+    switch (m_state) {
+      case LEADER:
+        leaderUpdate();
+        break;
+      case CANDIDATE:
+        candidateUpdate();
+        break;
+      default:  // FOLLOWER
+        followerUpdate();
+        break;
     }
   }
-
-  if (m_isCrashed) return true;
-
-  sleep(m_speed);
-
-  // Update the current_time
-  m_current_time = std::chrono::system_clock::now();
-
-  // Apply committed logs
-  m_logs.apply();
-
-  switch (m_state) {
-    case LEADER:
-      leaderUpdate();
-      break;
-    case CANDIDATE:
-      candidateUpdate();
-      break;
-    default:  // FOLLOWER
-      followerUpdate();
-      break;
-  }
-
-  return true;
 }
 
 // FOLLOWER
@@ -191,8 +193,7 @@ void Server::leaderUpdate() {
       std::cout << "Message received by leader is cmd" << std::endl;
       m_logs.addLog(m_term, recv(*status));
       json data = recv(*status);
-      if (status->MPI_TAG == Message::Type::CMD_LOAD)
-        handleLoad(recv(*status));
+      if (status->MPI_TAG == Message::Type::CMD_LOAD) handleLoad(recv(*status));
     }
 
     else  // non expected or invalid message -> drop

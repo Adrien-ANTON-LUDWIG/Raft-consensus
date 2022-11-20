@@ -57,8 +57,7 @@ int main(int argc, char** argv) {
   {
     Server server(my_rank, server_count, replRank);
 
-    while (server.update()) {
-    }
+    server.run();
   }
   else if (my_rank < replRank)
   {
@@ -66,8 +65,7 @@ int main(int argc, char** argv) {
     if (argc == 4)
       client.loadCommands(argv[3]);
 
-    while (client.update()) {
-    }
+    client.run();
   }
   else if (my_rank == replRank) {
     REPL::init(my_rank);

@@ -8,6 +8,7 @@
 using json = nlohmann::json;
 
 namespace MessageNS {
+/// @brief Base class of all messages.
 class Message {
  public:
   enum Type {

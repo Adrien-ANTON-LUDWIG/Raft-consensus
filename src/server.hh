@@ -34,10 +34,10 @@ class Server : ::REPL::Process {
   /**
    * Log replication
    */
-  // Id the current leader.
+  // Id of the current leader.
   int m_leaderId;
 
-  // Class to manage the logs (add, commit, apply, etc.).
+  // Logs manager
   Logs m_logs = Logs();
 
   // For each server, index of the next log entry to send to that server.
@@ -63,8 +63,8 @@ class Server : ::REPL::Process {
  public:
   Server(int id, int world_size, int replRank);
 
-  // GENERAL UPDATE
-  bool update();
+  /// @brief Main loop of the server
+  void run();
 
   // FOLLOWER
   void becomeFollower();
