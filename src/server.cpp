@@ -43,6 +43,7 @@ void Server::run() {
       else if (type == Message::Type::REPL_SPEED) {
         handleREPLSpeed(query);
       } else if (type == Message::Type::REPL_STOP) {
+        std::cout << m_id << " stopping" << std::endl;
         m_logs.writeLogs(m_id);
         isRunning = false;
         continue;
@@ -51,7 +52,10 @@ void Server::run() {
 
     if (m_isCrashed) continue;
 
-    sleep(m_speed);
+    if (std::chrono::duration<float, std::milli>(
+            std::chrono::system_clock::now() - m_speedCheckpoint) <
+        std::chrono::milliseconds(m_speed))
+      continue;
 
     // Update the current_time
     m_current_time = std::chrono::system_clock::now();
