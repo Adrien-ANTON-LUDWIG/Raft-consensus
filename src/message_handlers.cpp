@@ -11,7 +11,7 @@ using namespace MessageNS;
 
 void Server::handleRequestVote(const json &json) {
   RPC::RequestVote request(json);
-  spdlog::info("{}: Received request vote from {}", m_id,
+  spdlog::debug("{}: Received request vote from {}", m_id,
                request.getCandidate());
   checkTerm(request.getTerm());
 
@@ -36,15 +36,15 @@ void Server::handleVote(const json &json) {
 
   // Check state after checkTerm
   if (m_state != CANDIDATE) {
-    spdlog::info("{}: Received vote but not candidate", m_id);
+    spdlog::debug("{}: Received vote but not candidate", m_id);
     return;
   }
 
   if (vote.isGranted()) {
     m_vote_count++;
-    spdlog::info("{}: Vote granted by {}", m_id, vote.getOriginId());
+    spdlog::debug("{}: Vote granted by {}", m_id, vote.getOriginId());
   } else {
-    spdlog::info("{}: Vote denied by {}", m_id, vote.getOriginId());
+    spdlog::debug("{}: Vote denied by {}", m_id, vote.getOriginId());
   }
 }
 
@@ -52,7 +52,7 @@ void Server::handleAppendEntries(const json &json) {
   RPC::AppendEntries appendEntry(json);
   checkTerm(appendEntry.getTerm());
 
-  spdlog::info("{}: Received append entries from {}", m_id,
+  spdlog::debug("{}: Received append entries from {}", m_id,
                appendEntry.getLeader());
 
   // Create response
@@ -103,11 +103,11 @@ void Server::handleAppendEntriesResponse(const json &json) {
   checkTerm(response.getTerm());
 
   if (m_state != LEADER) {
-    spdlog::info("{}: Received append entries response but not leader", m_id);
+    spdlog::debug("{}: Received append entries response but not leader", m_id);
     return;
   }
 
-  spdlog::info("{}: Received append entries response from {}", m_id,
+  spdlog::debug("{}: Received append entries response from {}", m_id,
                response.getOriginId());
 
   // Update nextIndex and matchIndex for follower

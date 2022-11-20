@@ -6,6 +6,7 @@ server_count=3
 build_dir='build'
 exec='my_aws_s3'
 client_commands=''
+show_logs=0
 
 echo $exec
 
@@ -41,10 +42,20 @@ while [ $# -gt 0 ]; do
             client_commands="$1"
             shift
             ;;
+        -l|--show_logs)
+            show_logs=1
+            shift
+            ;;
     esac
 done
 
 repl_idx=$(($client_count + $server_count))
 total_size=$(($repl_idx + 1))
 
-mpiexec -np ${total_size} --stdin ${repl_idx} --oversubscribe ./"${build_dir}"/"${exec}" "${client_count}" "${server_count}" "${client_commands}"
+mpiexec --mca opal_warn_on_missing_libcuda 0 -np ${total_size} --stdin ${repl_idx} --oversubscribe ./"${build_dir}"/"${exec}" "${client_count}" "${server_count}" "${client_commands}"
+
+if [ $show_logs -eq 1 ]
+then
+    echo "Displaying logs"
+    cat build/logs.txt
+fi

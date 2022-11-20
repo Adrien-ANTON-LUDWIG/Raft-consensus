@@ -24,11 +24,12 @@ Server::Server(int id, int world_size, int replRank)
   m_nextIndex = std::vector<int>(world_size, 1);
   m_matchIndex = std::vector<int>(world_size, 0);
 
-  spdlog::info("{}: Election timeout: {}", m_id, m_election_timeout.count());
+  spdlog::debug("{}: Election timeout: {}", m_id, m_election_timeout.count());
 }
 
 void Server::run() {
   bool isRunning = true;
+  spdlog::info("Server {} started.", m_id);
 
   while (isRunning) {
     std::optional<MPI_Status> statusOpt = checkForMessage(m_replRank);
@@ -70,12 +71,14 @@ void Server::run() {
         break;
     }
   }
+
+  spdlog::info("Server {} stopped.", m_id);
 }
 
 // FOLLOWER
 void Server::becomeFollower() {
   if (m_state != FOLLOWER) {
-    spdlog::info("{}: Become follower", m_id);
+    spdlog::debug("{}: Become follower", m_id);
 
     // Update state
     m_state = FOLLOWER;
@@ -112,7 +115,7 @@ void Server::followerUpdate() {
 // ELECTION
 void Server::becomeCandidate() {
   // START ELECTION
-  spdlog::info("{}: Become candidate", m_id);
+  spdlog::debug("{}: Become candidate", m_id);
 
   // Update state
   m_state = STATE::CANDIDATE;
@@ -160,7 +163,7 @@ void Server::candidateUpdate() {
 
 // LEADER
 void Server::becomeLeader() {
-  spdlog::info("{}: Become leader", m_id);
+  spdlog::debug("{}: Become leader", m_id);
 
   // Update state
   m_state = STATE::LEADER;
@@ -241,7 +244,7 @@ void Server::sendHeartbeat() {
 
 // UTILS
 void Server::dropMessage(const Message &message) {
-  spdlog::info("{}: Dropping message {}", m_id, message.toJSON().dump());
+  spdlog::debug("{}: Dropping message {}", m_id, message.toJSON().dump());
 }
 
 void Server::checkTerm(int term) {

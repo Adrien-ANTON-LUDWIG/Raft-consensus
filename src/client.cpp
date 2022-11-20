@@ -36,6 +36,8 @@ Client::Client(int id, int nbServer, int replRank) : ::REPL::Process(replRank) {
 void Client::run() {
   bool isRunning = true;
 
+  spdlog::info("Client {} started.", m_id);
+
   while (isRunning) {
     std::optional<MPI_Status> statusOpt = checkForMessage(m_replRank);
     if (statusOpt.has_value()) {
@@ -102,6 +104,8 @@ void Client::run() {
       }
     }
   }
+
+  spdlog::info("Client {} stopped.", m_id);
 }
 
 void Client::loadCommands(const std::string& path) {
