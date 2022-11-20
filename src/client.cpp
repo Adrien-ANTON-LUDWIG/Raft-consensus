@@ -13,13 +13,14 @@
 #include "messages/CMD/load.hh"
 #include "messages/CMD/loadResponse.hh"
 #include "messages/REPL/info.hh"
-#include "messages/redirect.hh"
 #include "messages/mpi_wrappers.hh"
+#include "messages/redirect.hh"
 #include "spdlog/spdlog.h"
 
 using namespace MessageNS;
 
-Client::Client(Universe universe, int nbServer, int replRank) : ::REPL::Process(replRank) {
+Client::Client(Universe universe, int nbServer, int replRank)
+    : ::REPL::Process(replRank) {
   m_universe = universe;
   m_nbServer = nbServer;
 
@@ -33,13 +34,18 @@ Client::Client(Universe universe, int nbServer, int replRank) : ::REPL::Process(
   m_isStarted = false;
 }
 
+Client::~Client() {
+  for (auto cmd : m_commands) delete cmd;
+}
+
 void Client::run() {
   bool isRunning = true;
 
   spdlog::info("Client {} started.", m_universe.replWorld.rank);
 
   while (isRunning) {
-    std::optional<MPI_Status> statusOpt = checkForMessage(m_universe.replWorld.com, m_replRank);
+    std::optional<MPI_Status> statusOpt =
+        checkForMessage(m_universe.replWorld.com, m_replRank);
     if (statusOpt.has_value()) {
       json query = recv(statusOpt.value(), m_universe.replWorld.com);
       auto type = Message::getType(query);
@@ -70,12 +76,15 @@ void Client::run() {
 
       if (m_currentTime - m_startTime > m_requestTimeout) {
         // Send request to the known leader
-        send(m_commands[m_currentCommand], m_leaderId, m_universe.clientServerWorld.com);
+        spdlog::info("Sending {}", m_commands[m_currentCommand]->toJSON().dump());
+        send(*(m_commands[m_currentCommand]), m_leaderId,
+             m_universe.clientServerWorld.com);
         m_startTime = std::chrono::system_clock::now();
       }
 
       // Check if response received
-      std::optional<MPI_Status> status = checkForMessage(m_universe.clientServerWorld.com, m_leaderId);
+      std::optional<MPI_Status> status =
+          checkForMessage(m_universe.clientServerWorld.com, m_leaderId);
 
       if (!status.has_value()) continue;
 
@@ -98,9 +107,10 @@ void Client::run() {
       }
 
       if (response.getSuccess()) {
-        m_currentCommand++; // Increase counter to use the next command during next loop
+        m_currentCommand++;  // Increase counter to use the next command during
+                             // next loop
       } else {
-        m_leaderId = response.getLeaderId(); // Update known leader
+        m_leaderId = response.getLeaderId();  // Update known leader
       }
     }
   }
@@ -116,10 +126,10 @@ void Client::loadCommands(const std::string& path) {
     while (std::getline(stream, line)) {
       if (line.length() == 0) continue;
 
-      if (line[0] == '-') { // Start of the commands for the next client
+      if (line[0] == '-') {  // Start of the commands for the next client
         client_rank++;
       } else if (client_rank == m_universe.replWorld.rank - m_nbServer) {
-        if (line[0] == '$') { // Start of REPL commands
+        if (line[0] == '$') {  // Start of REPL commands
           return;
         } else if (line[0] != '#') {
           // Remove comments from line
@@ -127,7 +137,7 @@ void Client::loadCommands(const std::string& path) {
           if (commentStart != std::string::npos)
             line = line.substr(0, commentStart);
 
-          Message command = parseCommand(line);
+          Message* command = parseCommand(line);
           m_commands.push_back(command);
         }
       }
@@ -135,7 +145,7 @@ void Client::loadCommands(const std::string& path) {
   }
 }
 
-Message Client::parseCommand(const std::string& command) {
+Message* Client::parseCommand(const std::string& command) {
   std::istringstream iss(command);
   std::vector<std::string> tokens;
   std::string t;
@@ -152,12 +162,12 @@ Message Client::parseCommand(const std::string& command) {
           "Too many arguments. Usage: LOAD <file_name>\n");
 
     std::string file_name = tokens[1];
-    return CMD::Load(file_name, m_universe.clientServerWorld.rank);
+    return new CMD::Load(file_name, m_universe.clientServerWorld.rank);
   } else if (cmd == "LIST") {
     if (tokens.size() != 1)
       throw std::invalid_argument("Too many arguments. Usage: LIST\n");
 
-    return CMD::List(m_universe.clientServerWorld.rank);
+    return new CMD::List(m_universe.clientServerWorld.rank);
   } else if (cmd == "DELETE") {
     if (tokens.size() < 2)
       throw std::invalid_argument(
@@ -167,7 +177,8 @@ Message Client::parseCommand(const std::string& command) {
           "Too many arguments. Usage: DELETE <file_index>\n");
 
     int file_index = std::stoi(tokens[1]);
-    return CMD::Delete(m_filesUID[file_index], m_universe.clientServerWorld.rank);
+    return new CMD::Delete(m_filesUID[file_index],
+                           m_universe.clientServerWorld.rank);
   } else if (cmd == "APPEND") {
     if (tokens.size() < 3)
       throw std::invalid_argument(
@@ -176,7 +187,8 @@ Message Client::parseCommand(const std::string& command) {
 
     int file_index = std::stoi(tokens[1]);
     std::string data = tokens[2];
-    return CMD::Append(m_filesUID[file_index], data, m_universe.clientServerWorld.rank);
+    return new CMD::Append(m_filesUID[file_index], data,
+                           m_universe.clientServerWorld.rank);
   } else {
     throw std::invalid_argument("Unknown command");
   }

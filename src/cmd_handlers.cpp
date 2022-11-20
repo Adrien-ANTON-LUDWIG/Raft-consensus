@@ -22,6 +22,6 @@ void Server::handleLoad(const json& json) {
 
   CMD::LoadResponse response(fileUID, TO_IMPLEMENT, true,
                              m_universe.clientServerWorld.rank);  // TODO replace true by success check
-  std::cout << response.toJSON() << std::endl;
+                             
   send(response, load.getOriginId(), m_universe.clientServerWorld.com);
 }

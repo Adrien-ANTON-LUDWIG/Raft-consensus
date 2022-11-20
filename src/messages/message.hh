@@ -52,6 +52,7 @@ class Message {
   Message() = default;
   Message(Type type, int originId);
   Message(const json& data);
+  virtual ~Message() = default;
 
   std::string UUIDToStr() const;
   Type getType() const;

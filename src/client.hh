@@ -22,7 +22,7 @@ class Client : ::REPL::Process {
   /**
    * Commands management
    */
-  std::vector<MessageNS::Message> m_commands;
+  std::vector<MessageNS::Message*> m_commands;
   long unsigned int m_currentCommand = 0;
   std::vector<uuids::uuid> m_filesUID;
 
@@ -41,6 +41,7 @@ class Client : ::REPL::Process {
 
  public:
   Client(Universe universe, int nbServer, int replRank);
+  ~Client();
 
   /// @brief Main loop of the client
   void run();
@@ -51,7 +52,7 @@ class Client : ::REPL::Process {
   /// @brief Parse a command instruction
   /// @param command 
   /// @return The message to send
-  MessageNS::Message parseCommand(const std::string& command);
+  MessageNS::Message* parseCommand(const std::string& command);
 
   // REPL HANDLERS
   virtual void handleREPLInfo(const json& json) override;

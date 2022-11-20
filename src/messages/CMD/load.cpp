@@ -1,5 +1,7 @@
 #include "load.hh"
 
+#include <iostream>
+
 namespace MessageNS::CMD {
 Load::Load(std::string filename, int originId)
     : Message(Type::CMD_LOAD, originId) {

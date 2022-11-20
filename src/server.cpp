@@ -219,7 +219,6 @@ void Server::leaderUpdate() {
 
     json data = recv(*status, m_universe.clientServerWorld.com);
     if (Message::isCMD(status->MPI_TAG)) {
-      std::cout << "Message received by leader is cmd" << std::endl;
       m_logs.addLog(m_term, data);
       if (status->MPI_TAG == Message::Type::CMD_LOAD) handleLoad(data);
     }
