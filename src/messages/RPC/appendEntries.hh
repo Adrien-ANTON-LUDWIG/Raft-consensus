@@ -20,8 +20,8 @@ class AppendEntries : public Message {
   AppendEntries(int term, int leaderId, int prevLogIndex, int prevLogTerm,
                 const std::vector<Logs::Log>& entries, int leaderCommit);
 
-  AppendEntries(int term, int leaderId, int prevLogIndex, int prevLogTerm,
-                int leaderCommit);
+  static AppendEntries createHeartbeat(int term, int leaderId, int prevLogIndex,
+                                       int prevLogTerm, int leaderCommit);
 
   AppendEntries(const json& data);
 

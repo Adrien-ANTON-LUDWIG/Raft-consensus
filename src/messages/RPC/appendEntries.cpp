@@ -14,15 +14,9 @@ AppendEntries::AppendEntries(int term, int leaderId, int prevLogIndex,
   m_leaderCommit = leaderCommit;
 }
 
-AppendEntries::AppendEntries(int term, int leaderId, int prevLogIndex,
-                             int prevLogTerm, int leaderCommit)
-    : Message(Type::RPC_APPEND_ENTRIES, leaderId) {
-  m_term = term;
-  m_leaderId = leaderId;
-  m_prevLogIndex = prevLogIndex;
-  m_prevLogTerm = prevLogTerm;
-  m_entries = {};
-  m_leaderCommit = leaderCommit;
+AppendEntries AppendEntries::createHeartbeat(int term, int leaderId, int prevLogIndex,
+                             int prevLogTerm, int leaderCommit) {
+  return AppendEntries(term, leaderId, prevLogIndex, prevLogTerm, {}, leaderCommit);
 }
 
 AppendEntries::AppendEntries(const json& data) : Message(data) {
