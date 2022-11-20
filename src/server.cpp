@@ -111,7 +111,7 @@ void Server::followerUpdate() {
   std::optional<MPI_Status> status_client = checkForMessage(m_universe.clientServerWorld.com);
 
   if (status_client.has_value()) {
-    json data = recv(*status_server, m_universe.clientServerWorld.com);
+    json data = recv(*status_client, m_universe.clientServerWorld.com);
     if (Message::isCMD(status_client->MPI_TAG)) {
       Redirect redirection(m_leaderId, m_universe.clientServerWorld.rank);
       send(redirection, status_client->MPI_SOURCE, m_universe.clientServerWorld.com);
@@ -216,6 +216,7 @@ void Server::leaderUpdate() {
   if (status.has_value()) {
     // If command received from client: append entry to local log,
     // respond after entry applied to state machine (§5.3)
+
     json data = recv(*status, m_universe.clientServerWorld.com);
     if (Message::isCMD(status->MPI_TAG)) {
       std::cout << "Message received by leader is cmd" << std::endl;

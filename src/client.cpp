@@ -88,13 +88,13 @@ void Client::run() {
 
         if (response.getSuccess()) m_filesUID.push_back(response.getFileUID());
       } else if (status->MPI_TAG == Message::Type::CMD_LIST_RESPONSE) {
-        CMD::ListResponse response(data);
+        response = CMD::ListResponse(data);
       } else if (status->MPI_TAG == Message::Type::CMD_DELETE_RESPONSE) {
-        CMD::DeleteResponse response(data);
+        response = CMD::DeleteResponse(data);
       } else if (status->MPI_TAG == Message::Type::CMD_APPEND_RESPONSE) {
-        CMD::AppendResponse response(data);
+        response = CMD::AppendResponse(data);
       } else if (status->MPI_TAG == Message::Type::REDIRECT) {
-        Redirect response(data);
+        response = Redirect(data);
       }
 
       if (response.getSuccess()) {
