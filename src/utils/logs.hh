@@ -46,7 +46,9 @@ class Logs {
   Log getLog(int index);
   int getTerm(int index) const;
 
-  // Get all logs from startIndex to the end.
+  /// @brief Get all logs from startIndex to the end.
+  /// @param startIndex 
+  /// @return 
   std::vector<Log> getLastLogs(int startIndex);
   void deleteLastLogs(int startIndex);
 
