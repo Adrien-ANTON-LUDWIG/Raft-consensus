@@ -5,6 +5,8 @@
 #include <iostream>
 #include <thread>
 
+#include "worlds_info.hh"
+
 #include "client.hh"
 #include "repl.hh"
 #include "server.hh"
@@ -42,33 +44,59 @@ int main(int argc, char** argv) {
   // This must always be called before any other MPI functions
   MPI_Init(&argc, &argv);
 
-  // Get the number of processes in MPI_COMM_WORLD
-  int world_size;
-  MPI_Comm_size(MPI_COMM_WORLD, &world_size);
-
-  // Get the rank of this process in MPI_COMM_WORLD
-  int my_rank;
-  MPI_Comm_rank(MPI_COMM_WORLD, &my_rank);
-
   /////////////////////////////////////////////////////////////////
 
   int replRank = client_count + server_count;
-  if (my_rank < server_count)
+
+  Universe universe;
+  universe.replWorld.com = MPI_COMM_WORLD;
+  MPI_Comm_rank(MPI_COMM_WORLD, &universe.replWorld.rank);
+  MPI_Comm_size(MPI_COMM_WORLD, &universe.replWorld.world_size);
+
+  int rank = universe.replWorld.rank;
+  if (rank < server_count)
   {
-    Server server(my_rank, server_count, replRank);
+    // Adding server to inter-server communications channel
+    MPI_Comm_split(MPI_COMM_WORLD, 0, rank, &universe.serverWorld.com);
+    MPI_Comm_rank(universe.serverWorld.com, &universe.serverWorld.rank);
+    universe.serverWorld.world_size = server_count;
+
+    // Adding server to client->server communications channel
+    MPI_Comm_split(MPI_COMM_WORLD, 1, rank, &universe.clientServerWorld.com);
+    MPI_Comm_rank(universe.clientServerWorld.com, &universe.clientServerWorld.rank);
+    universe.clientServerWorld.world_size = server_count + client_count;
+
+    Server server(universe, replRank);
 
     server.run();
   }
-  else if (my_rank < replRank)
+  else if (rank < replRank)
   {
-    Client client(my_rank, server_count, replRank);
+    // Mark as not participating to server communication channel creation
+    MPI_Comm_split(MPI_COMM_WORLD, MPI_UNDEFINED, rank, &universe.clientServerWorld.com);
+
+    // Adding client to client->server communications channel
+    MPI_Comm_split(MPI_COMM_WORLD, 1, rank, &universe.clientServerWorld.com);
+    MPI_Comm_rank(universe.clientServerWorld.com, &universe.clientServerWorld.rank);
+    universe.serverWorld.world_size = server_count + client_count;
+
+    // std::cout << "Client " << universe.replWorld.rank << ":\n";
+    // std::cout << universe << std::endl;
+
+    Client client(universe, server_count, replRank);
     if (argc == 4)
       client.loadCommands(argv[3]);
 
     client.run();
   }
-  else if (my_rank == replRank) {
-    REPL::init(my_rank);
+  else if (rank == replRank) {
+    // Mark as not participating to server communication channel creation
+    MPI_Comm_split(MPI_COMM_WORLD, MPI_UNDEFINED, rank, &universe.clientServerWorld.com);
+
+    // Mark as not participating to client-server communication channel creation
+    MPI_Comm_split(MPI_COMM_WORLD, MPI_UNDEFINED, rank, &universe.clientServerWorld.com);
+
+    REPL::init(universe);
     REPL::start(client_count, server_count);
   }
 

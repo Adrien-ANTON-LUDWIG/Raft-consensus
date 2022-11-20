@@ -19,8 +19,8 @@
 
 using namespace MessageNS;
 
-Client::Client(int id, int nbServer, int replRank) : ::REPL::Process(replRank) {
-  m_id = id;
+Client::Client(Universe universe, int nbServer, int replRank) : ::REPL::Process(replRank) {
+  m_universe = universe;
   m_nbServer = nbServer;
 
   // Time management
@@ -36,12 +36,12 @@ Client::Client(int id, int nbServer, int replRank) : ::REPL::Process(replRank) {
 void Client::run() {
   bool isRunning = true;
 
-  spdlog::info("Client {} started.", m_id);
+  spdlog::info("Client {} started.", m_universe.replWorld.rank);
 
   while (isRunning) {
-    std::optional<MPI_Status> statusOpt = checkForMessage(m_replRank);
+    std::optional<MPI_Status> statusOpt = checkForMessage(m_universe.replWorld.com, m_replRank);
     if (statusOpt.has_value()) {
-      json query = recv(statusOpt.value());
+      json query = recv(statusOpt.value(), m_universe.replWorld.com);
       auto type = Message::getType(query);
       if (type == Message::Type::REPL_INFO)
         handleREPLInfo(query);
@@ -70,19 +70,19 @@ void Client::run() {
 
       if (m_currentTime - m_startTime > m_requestTimeout) {
         // Send request to the known leader
-        send(m_commands[m_currentCommand], m_leaderId);
+        send(m_commands[m_currentCommand], m_leaderId, m_universe.clientServerWorld.com);
         m_startTime = std::chrono::system_clock::now();
       }
 
       // Check if response received
-      std::optional<MPI_Status> status = checkForMessage();
+      std::optional<MPI_Status> status = checkForMessage(m_universe.clientServerWorld.com, m_leaderId);
 
       if (!status.has_value()) continue;
 
       ResponseToClient response;
 
       // Handle response
-      json data = recv(*status);
+      json data = recv(*status, m_universe.clientServerWorld.com);
       if (status->MPI_TAG == Message::Type::CMD_LOAD_RESPONSE) {
         CMD::LoadResponse response(data);
 
@@ -105,7 +105,7 @@ void Client::run() {
     }
   }
 
-  spdlog::info("Client {} stopped.", m_id);
+  spdlog::info("Client {} stopped.", m_universe.replWorld.rank);
 }
 
 void Client::loadCommands(const std::string& path) {
@@ -118,7 +118,7 @@ void Client::loadCommands(const std::string& path) {
 
       if (line[0] == '-') { // Start of the commands for the next client
         client_rank++;
-      } else if (client_rank == m_id - m_nbServer) {
+      } else if (client_rank == m_universe.replWorld.rank - m_nbServer) {
         if (line[0] == '$') { // Start of REPL commands
           return;
         } else if (line[0] != '#') {
@@ -152,12 +152,12 @@ Message Client::parseCommand(const std::string& command) {
           "Too many arguments. Usage: LOAD <file_name>\n");
 
     std::string file_name = tokens[1];
-    return CMD::Load(file_name, m_id);
+    return CMD::Load(file_name, m_universe.clientServerWorld.rank);
   } else if (cmd == "LIST") {
     if (tokens.size() != 1)
       throw std::invalid_argument("Too many arguments. Usage: LIST\n");
 
-    return CMD::List(m_id);
+    return CMD::List(m_universe.clientServerWorld.rank);
   } else if (cmd == "DELETE") {
     if (tokens.size() < 2)
       throw std::invalid_argument(
@@ -167,7 +167,7 @@ Message Client::parseCommand(const std::string& command) {
           "Too many arguments. Usage: DELETE <file_index>\n");
 
     int file_index = std::stoi(tokens[1]);
-    return CMD::Delete(m_filesUID[file_index], m_id);
+    return CMD::Delete(m_filesUID[file_index], m_universe.clientServerWorld.rank);
   } else if (cmd == "APPEND") {
     if (tokens.size() < 3)
       throw std::invalid_argument(
@@ -176,7 +176,7 @@ Message Client::parseCommand(const std::string& command) {
 
     int file_index = std::stoi(tokens[1]);
     std::string data = tokens[2];
-    return CMD::Append(m_filesUID[file_index], data, m_id);
+    return CMD::Append(m_filesUID[file_index], data, m_universe.clientServerWorld.rank);
   } else {
     throw std::invalid_argument("Unknown command");
   }

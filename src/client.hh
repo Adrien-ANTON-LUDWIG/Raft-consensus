@@ -4,6 +4,8 @@
 #include <string>
 #include <vector>
 
+#include "worlds_info.hh"
+
 #include "messages/message.hh"
 #include "repl_process.hh"
 #include "uuid.h"
@@ -13,7 +15,7 @@ class Client : ::REPL::Process {
   /**
    * State
    */
-  int m_id;
+  Universe m_universe;
   int m_nbServer;
   int m_leaderId = 0;
 
@@ -38,7 +40,7 @@ class Client : ::REPL::Process {
   bool m_isStarted;
 
  public:
-  Client(int id, int nbServer, int replRank);
+  Client(Universe universe, int nbServer, int replRank);
 
   /// @brief Main loop of the client
   void run();

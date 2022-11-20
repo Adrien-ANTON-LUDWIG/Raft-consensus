@@ -27,7 +27,7 @@ add_executable(my_aws_s3 src/main.cpp)
 target_sources(my_aws_s3 PRIVATE
     src/client.cpp
     src/client.hh
-    src/message_handlers.cpp
+    src/rpc_handlers.cpp
     src/repl_handlers.cpp
     src/repl_process.cpp
     src/repl_process.hh
@@ -36,6 +36,8 @@ target_sources(my_aws_s3 PRIVATE
     src/cmd_handlers.cpp
     src/server.cpp
     src/server.hh
+    src/worlds_info.cpp
+    src/worlds_info.hh
 )
 
 target_include_directories(my_aws_s3 PRIVATE

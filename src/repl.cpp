@@ -11,7 +11,7 @@
 #include "messages/mpi_wrappers.hh"
 
 namespace REPL {
-static int g_rank = -1;
+static Universe g_universe;
 static bool g_isRunning = false;
 static int g_clientCount = -1;
 static int g_serverCount = -1;
@@ -52,9 +52,9 @@ static bool parseRank(std::string t, int &rank) {
 
 static bool getResponse(const MessageNS::Message &query, int rank,
                         MessageNS::Message::Type type, json &response) {
-  send(query, rank);
+  send(query, rank, g_universe.replWorld.com);
 
-  response = waitForResponse(rank);
+  response = waitForResponse(rank, g_universe.replWorld.com);
   if (auto responseType = MessageNS::Message::getType(response) != type) {
     std::cerr << "Implementation error. Bad response type " << responseType
               << "." << std::endl;
@@ -83,15 +83,15 @@ static void parseCommand(const std::string &line) {
 
     auto &type = tokens[2];
     if (type == "low") {
-      MessageNS::REPL::Speed message(MessageNS::REPL::SpeedType::LOW, g_rank);
-      send(message, rank);
+      MessageNS::REPL::Speed message(MessageNS::REPL::SpeedType::LOW, g_universe.replWorld.rank);
+      send(message, rank, g_universe.replWorld.com);
     } else if (type == "medium") {
       MessageNS::REPL::Speed message(MessageNS::REPL::SpeedType::MEDIUM,
-                                     g_rank);
-      send(message, rank);
+                                     g_universe.replWorld.rank);
+      send(message, rank, g_universe.replWorld.com);
     } else if (type == "high") {
-      MessageNS::REPL::Speed message(MessageNS::REPL::SpeedType::HIGH, g_rank);
-      send(message, rank);
+      MessageNS::REPL::Speed message(MessageNS::REPL::SpeedType::HIGH, g_universe.replWorld.rank);
+      send(message, rank, g_universe.replWorld.com);
     } else {
       std::cerr << "Invalid speed type. Usage: speed <rank> low|medium|high"
                 << std::endl;
@@ -106,12 +106,12 @@ static void parseCommand(const std::string &line) {
 
     if (rank < g_serverCount || rank >= g_serverCount + g_clientCount) {
       std::cerr << "Bad rank. Should be in range [" << g_serverCount << ","
-                << g_rank - 1 << "]." << std::endl;
+                << g_universe.replWorld.rank - 1 << "]." << std::endl;
       return;
     }
 
-    MessageNS::REPL::Start message(g_rank);
-    send(message, rank);
+    MessageNS::REPL::Start message(g_universe.replWorld.rank);
+    send(message, rank, g_universe.replWorld.com);
   } else if (cmd == "crash") {
     if (tokens.size() < 2) {
       std::cerr << "Missing rank. Usage: crash <rank>" << std::endl;
@@ -120,8 +120,8 @@ static void parseCommand(const std::string &line) {
 
     if (!parseRank(tokens[1], rank)) return;
 
-    MessageNS::REPL::Crash message(g_rank);
-    send(message, rank);
+    MessageNS::REPL::Crash message(g_universe.replWorld.rank);
+    send(message, rank, g_universe.replWorld.com);
 
   } else if (cmd == "info") {
     if (tokens.size() < 2) {
@@ -131,7 +131,7 @@ static void parseCommand(const std::string &line) {
 
     if (!parseRank(tokens[1], rank)) return;
 
-    MessageNS::REPL::Info query(g_rank);
+    MessageNS::REPL::Info query(g_universe.replWorld.rank);
     json response;
     if (!getResponse(query, rank, MessageNS::Message::Type::REPL_INFO_RESPONSE,
                      response))
@@ -148,7 +148,7 @@ static void parseCommand(const std::string &line) {
   }
 }
 
-void init(int rank) { g_rank = rank; }
+void init(Universe universe) { g_universe = universe; }
 
 void start(int clientCount, int serverCount) {
   std::cout << "REPL CLI enabled\n";
@@ -171,9 +171,9 @@ void start(int clientCount, int serverCount) {
 void stop() {
   g_isRunning = false;
   std::cout << "REPL CLI disabled.\n";
-  MessageNS::REPL::Stop message(g_rank);
+  MessageNS::REPL::Stop message(g_universe.replWorld.rank);
   for (int rank = 0; rank <= g_clientCount + g_serverCount; rank++) {
-    send(message, rank);
+    send(message, rank, g_universe.replWorld.com);
   }
 }
 

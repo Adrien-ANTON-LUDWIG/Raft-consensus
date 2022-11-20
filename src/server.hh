@@ -6,6 +6,8 @@
 #include <iostream>
 #include <queue>
 
+#include "worlds_info.hh"
+
 #include "json.hpp"
 #include "messages/mpi_wrappers.hh"
 #include "repl_process.hh"
@@ -17,7 +19,7 @@ enum STATE { FOLLOWER, CANDIDATE, LEADER };
 
 class Server : ::REPL::Process {
  private:
-  int m_id;  // Corresponding to MPI rank
+  Universe m_universe;
 
   STATE m_state = FOLLOWER;
 
@@ -48,11 +50,6 @@ class Server : ::REPL::Process {
   std::vector<int> m_matchIndex;
 
   /**
-   * MPI management
-   */
-  int m_world_size;
-
-  /**
    * Time management
    */
   std::chrono::milliseconds m_election_timeout;
@@ -61,7 +58,7 @@ class Server : ::REPL::Process {
   std::chrono::_V2::system_clock::time_point m_current_time;
 
  public:
-  Server(int id, int world_size, int replRank);
+  Server(Universe universe, int replRank);
 
   /// @brief Main loop of the server
   void run();

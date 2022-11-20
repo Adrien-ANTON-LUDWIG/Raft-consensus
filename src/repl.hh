@@ -2,10 +2,12 @@
 
 #include <string>
 
+#include "worlds_info.hh"
+
 namespace REPL {
 /// @brief Initialize REPL rank
 /// @param rank 
-void init(int rank);
+void init(Universe universe);
 
 /// @brief Launch REPL with CLI control
 void start(int clientCount, int serverCount);

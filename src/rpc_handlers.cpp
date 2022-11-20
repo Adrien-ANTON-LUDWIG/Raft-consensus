@@ -11,7 +11,7 @@ using namespace MessageNS;
 
 void Server::handleRequestVote(const json &json) {
   RPC::RequestVote request(json);
-  spdlog::debug("{}: Received request vote from {}", m_id,
+  spdlog::debug("{}: Received request vote from {}", m_universe.serverWorld.rank,
                request.getCandidate());
   checkTerm(request.getTerm());
 
@@ -26,8 +26,8 @@ void Server::handleRequestVote(const json &json) {
     m_start_time = std::chrono::system_clock::now();
   }
 
-  RPC::Vote vote(m_term, grantVote, m_id);
-  send(vote, request.getCandidate());
+  RPC::Vote vote(m_term, grantVote, m_universe.serverWorld.rank);
+  send(vote, request.getCandidate(), m_universe.serverWorld.com);
 }
 
 void Server::handleVote(const json &json) {
@@ -36,15 +36,15 @@ void Server::handleVote(const json &json) {
 
   // Check state after checkTerm
   if (m_state != CANDIDATE) {
-    spdlog::debug("{}: Received vote but not candidate", m_id);
+    spdlog::debug("{}: Received vote but not candidate", m_universe.serverWorld.rank);
     return;
   }
 
   if (vote.isGranted()) {
     m_vote_count++;
-    spdlog::debug("{}: Vote granted by {}", m_id, vote.getOriginId());
+    spdlog::debug("{}: Vote granted by {}", m_universe.serverWorld.rank, vote.getOriginId());
   } else {
-    spdlog::debug("{}: Vote denied by {}", m_id, vote.getOriginId());
+    spdlog::debug("{}: Vote denied by {}", m_universe.serverWorld.rank, vote.getOriginId());
   }
 }
 
@@ -52,11 +52,11 @@ void Server::handleAppendEntries(const json &json) {
   RPC::AppendEntries appendEntry(json);
   checkTerm(appendEntry.getTerm());
 
-  spdlog::debug("{}: Received append entries from {}", m_id,
+  spdlog::debug("{}: Received append entries from {}", m_universe.serverWorld.rank,
                appendEntry.getLeader());
 
   // Create response
-  RPC::AppendEntriesResponse response(m_term, false, m_id);
+  RPC::AppendEntriesResponse response(m_term, false, m_universe.serverWorld.rank);
 
   bool logOk = appendEntry.getPreviousLogIdx() == 0 ||
                (m_logs.contains(appendEntry.getPreviousLogIdx()) &&
@@ -66,7 +66,7 @@ void Server::handleAppendEntries(const json &json) {
   // Reply false if term < currentTerm or if log doesn't contain an entry at
   // prevLogIndex whose term matches prevLogTerm
   if (appendEntry.getTerm() < m_term || (m_state == FOLLOWER && !logOk))
-    return send(response, appendEntry.getLeader());
+    return send(response, appendEntry.getLeader(), m_universe.serverWorld.com);
 
   if (m_state == CANDIDATE && appendEntry.getTerm() >= m_term) becomeFollower();
 
@@ -81,7 +81,7 @@ void Server::handleAppendEntries(const json &json) {
   if (appendEntry.isHeartbeat()) {
     m_logs.updateCommitIndex(appendEntry.getLeaderCommit());
     response.setMatchIndex(m_logs.getLastIndex());
-    return send(response, appendEntry.getLeader());
+    return send(response, appendEntry.getLeader(), m_universe.serverWorld.com);
   }
 
   // Delete all entries after previous log index
@@ -95,7 +95,7 @@ void Server::handleAppendEntries(const json &json) {
   m_logs.updateCommitIndex(appendEntry.getLeaderCommit());
 
   response.setMatchIndex(m_logs.getLastIndex());
-  send(response, appendEntry.getLeader());
+  send(response, appendEntry.getLeader(), m_universe.serverWorld.com);
 }
 
 void Server::handleAppendEntriesResponse(const json &json) {
@@ -103,11 +103,11 @@ void Server::handleAppendEntriesResponse(const json &json) {
   checkTerm(response.getTerm());
 
   if (m_state != LEADER) {
-    spdlog::debug("{}: Received append entries response but not leader", m_id);
+    spdlog::debug("{}: Received append entries response but not leader", m_universe.serverWorld.rank);
     return;
   }
 
-  spdlog::debug("{}: Received append entries response from {}", m_id,
+  spdlog::debug("{}: Received append entries response from {}", m_universe.serverWorld.rank,
                response.getOriginId());
 
   // Update nextIndex and matchIndex for follower
@@ -126,7 +126,7 @@ void Server::handleAppendEntriesResponse(const json &json) {
   // matchIndex[i] >= N, and log[N].term == currentTerm: set commitIndex = N
   int N = m_logs.getCommitIndex() + 1;
   int count = std::count(m_matchIndex.begin(), m_matchIndex.end(), N);
-  while (N <= m_logs.getLastIndex() && count > m_world_size / 2 &&
+  while (N <= m_logs.getLastIndex() && count > m_universe.serverWorld.world_size / 2 &&
          m_logs.getTerm(N) == m_term) {
     N++;
     count = std::count(m_matchIndex.begin(), m_matchIndex.end(), N);

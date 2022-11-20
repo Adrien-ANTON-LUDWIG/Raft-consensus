@@ -9,15 +9,15 @@
 void Server::handleREPLInfo(const json& json) {
     MessageNS::REPL::Info info(json);
 
-    MessageNS::REPL::InfoResponse response(m_speed, m_isCrashed, false, true, m_state == LEADER, m_id);
-    send(response, info.getOriginId());
+    MessageNS::REPL::InfoResponse response(m_speed, m_isCrashed, false, true, m_state == LEADER, m_universe.replWorld.rank);
+    send(response, info.getOriginId(), m_universe.replWorld.com);
 }
 
 void Client::handleREPLInfo(const json& json) {
     MessageNS::REPL::Info info(json);
 
-    MessageNS::REPL::InfoResponse response(m_speed, m_isCrashed, true, m_isStarted, false, m_id);
-    send(response, info.getOriginId());
+    MessageNS::REPL::InfoResponse response(m_speed, m_isCrashed, true, m_isStarted, false, m_universe.replWorld.rank);
+    send(response, info.getOriginId(), m_universe.replWorld.com);
 }
 
 void Client::handleREPLStart(__attribute__ ((unused)) const json& json) {
