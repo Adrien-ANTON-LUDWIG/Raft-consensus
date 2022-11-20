@@ -42,12 +42,12 @@ std::optional<MPI_Status> checkForMessage(MPI_Comm channel, int source) {
   return std::optional<MPI_Status>(status);
 }
 
-json waitForResponse(int source, MPI_Comm channel) {
-  std::optional<MPI_Status> statusOpt;
-  do
-  {
-    statusOpt = checkForMessage(channel, source);
-  } while (!statusOpt.has_value());
+bool waitForResponse(int source, MPI_Comm channel, json& responseData) {
+  std::optional<MPI_Status> statusOpt = checkForMessage(channel, source);
+  if (!statusOpt.has_value())
+    return true;
   
-  return recv(statusOpt.value(), channel);
+  responseData = recv(statusOpt.value(), channel);
+
+  return false;
 }

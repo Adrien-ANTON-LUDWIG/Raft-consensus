@@ -54,7 +54,7 @@ static bool getResponse(const MessageNS::Message &query, int rank,
                         MessageNS::Message::Type type, json &response) {
   send(query, rank, g_universe.replWorld.com);
 
-  response = waitForResponse(rank, g_universe.replWorld.com);
+  while (waitForResponse(rank, g_universe.replWorld.com, response));
   if (auto responseType = MessageNS::Message::getType(response) != type) {
     std::cerr << "Implementation error. Bad response type " << responseType
               << "." << std::endl;
