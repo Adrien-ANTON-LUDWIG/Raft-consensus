@@ -99,7 +99,8 @@ void Server::becomeFollower() {
 
 void Server::followerUpdate() {
   // Respond to RPCs from candidates and leaders
-  std::optional<MPI_Status> status_server = checkForMessage(m_universe.serverWorld.com);
+  std::optional<MPI_Status> status_server =
+      checkForMessage(m_universe.serverWorld.com);
 
   if (status_server.has_value()) {
     json data = recv(*status_server, m_universe.serverWorld.com);
@@ -113,13 +114,15 @@ void Server::followerUpdate() {
   }
 
   // Redirect clients to leader if received message
-  std::optional<MPI_Status> status_client = checkForMessage(m_universe.clientServerWorld.com);
+  std::optional<MPI_Status> status_client =
+      checkForMessage(m_universe.clientServerWorld.com);
 
   if (status_client.has_value()) {
     json data = recv(*status_client, m_universe.clientServerWorld.com);
     if (Message::isCMD(status_client->MPI_TAG)) {
       Redirect redirection(m_leaderId, m_universe.clientServerWorld.rank);
-      send(redirection, status_client->MPI_SOURCE, m_universe.clientServerWorld.com);
+      send(redirection, status_client->MPI_SOURCE,
+           m_universe.clientServerWorld.com);
     }
     dropMessage(data);
   }
@@ -150,7 +153,8 @@ void Server::becomeCandidate() {
 
   // Send RequestVote RPCs to all other servers
   RPC::RequestVote requestVote(m_term, m_universe.serverWorld.rank);
-  sendAll(requestVote, m_universe.serverWorld.rank, m_universe.serverWorld.world_size, m_universe.serverWorld.com);
+  sendAll(requestVote, m_universe.serverWorld.rank,
+          m_universe.serverWorld.world_size, m_universe.serverWorld.com);
 }
 
 void Server::candidateUpdate() {
@@ -158,7 +162,8 @@ void Server::candidateUpdate() {
   if (m_vote_count > m_universe.serverWorld.world_size / 2) becomeLeader();
 
   // If AppendEntries RPC received from new leader: convert to follower
-  std::optional<MPI_Status> status_server = checkForMessage(m_universe.serverWorld.com);
+  std::optional<MPI_Status> status_server =
+      checkForMessage(m_universe.serverWorld.com);
 
   if (status_server.has_value()) {
     json data = recv(*status_server, m_universe.serverWorld.com);
@@ -172,12 +177,14 @@ void Server::candidateUpdate() {
   }
 
   // Redirect clients to leader if received message
-  std::optional<MPI_Status> status_client = checkForMessage(m_universe.clientServerWorld.com);
+  std::optional<MPI_Status> status_client =
+      checkForMessage(m_universe.clientServerWorld.com);
 
   if (status_client.has_value()) {
     if (Message::isCMD(status_client->MPI_TAG)) {
       Redirect redirection(-1, m_universe.clientServerWorld.rank);
-      send(redirection, status_client->MPI_SOURCE, m_universe.clientServerWorld.com);
+      send(redirection, status_client->MPI_SOURCE,
+           m_universe.clientServerWorld.com);
     }
     dropMessage(recv(*status_client, m_universe.clientServerWorld.com));
   }
@@ -194,7 +201,8 @@ void Server::becomeLeader() {
   m_state = STATE::LEADER;
 
   // Set nextIndex for each server to lastLogIndex + 1
-  m_nextIndex = std::vector<int>(m_universe.serverWorld.world_size, m_logs.getLastIndex() + 1);
+  m_nextIndex = std::vector<int>(m_universe.serverWorld.world_size,
+                                 m_logs.getLastIndex() + 1);
 
   // Set matchIndex for each server to 0 (initialized, increases monotonically)
   m_matchIndex = std::vector<int>(m_universe.serverWorld.world_size, 0);
@@ -205,7 +213,8 @@ void Server::becomeLeader() {
 
 void Server::leaderUpdate() {
   // Check for new messages
-  std::optional<MPI_Status> status = checkForMessage(m_universe.serverWorld.com);
+  std::optional<MPI_Status> status =
+      checkForMessage(m_universe.serverWorld.com);
 
   if (status.has_value()) {
     json data = recv(*status, m_universe.serverWorld.com);
@@ -216,7 +225,7 @@ void Server::leaderUpdate() {
     else if (status->MPI_TAG == Message::Type::RPC_APPEND_ENTRIES_RESPONSE)
       handleAppendEntriesResponse(data);
   }
-  
+
   status = checkForMessage(m_universe.clientServerWorld.com);
   if (status.has_value()) {
     // If command received from client: append entry to local log,
@@ -226,8 +235,7 @@ void Server::leaderUpdate() {
     if (Message::isCMD(status->MPI_TAG)) {
       m_logs.addLog(m_term, data);
       if (status->MPI_TAG == Message::Type::CMD_LOAD) handleLoad(data);
-    }
-    else  // non expected or invalid message -> drop
+    } else  // non expected or invalid message -> drop
       dropMessage(data);
   }
 
@@ -240,8 +248,9 @@ void Server::leaderUpdate() {
       int prevLogTerm = -1;
       if (prevLogIndex > 0) m_logs.getLog(prevLogIndex).getTerm();
 
-      RPC::AppendEntries appendEntries(m_term, m_universe.serverWorld.rank, prevLogIndex, prevLogTerm,
-                                       m_logs.getCommitIndex());
+      auto appendEntries = RPC::AppendEntries::createHeartbeat(
+          m_term, m_universe.serverWorld.rank, prevLogIndex, prevLogTerm,
+          m_logs.getCommitIndex());
 
       // If last log index ≥ nextIndex for a follower: send
       // AppendEntries RPC with log entries starting at nextIndex
@@ -261,8 +270,9 @@ void Server::sendHeartbeat() {
     int prevLogIndex = m_nextIndex[rank] - 1;
     int prevLogTerm = -1;
     if (prevLogIndex > 0) m_logs.getLog(prevLogIndex).getTerm();
-    RPC::AppendEntries heartbeat(m_term, m_universe.serverWorld.rank, prevLogIndex, prevLogTerm,
-                                 m_logs.getCommitIndex());
+    auto heartbeat = RPC::AppendEntries::createHeartbeat(
+        m_term, m_universe.serverWorld.rank, prevLogIndex, prevLogTerm,
+        m_logs.getCommitIndex());
     send(heartbeat, rank, m_universe.serverWorld.com);
   }
 
@@ -272,7 +282,8 @@ void Server::sendHeartbeat() {
 
 // UTILS
 void Server::dropMessage(const Message &message) {
-  spdlog::debug("{}: Dropping message {}", m_universe.serverWorld.rank, message.toJSON().dump());
+  spdlog::debug("{}: Dropping message {}", m_universe.serverWorld.rank,
+                message.toJSON().dump());
 }
 
 void Server::checkTerm(int term) {
