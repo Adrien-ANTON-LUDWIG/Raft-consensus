@@ -38,30 +38,35 @@ Client::~Client() {
   for (auto cmd : m_commands) delete cmd;
 }
 
+void Client::checkREPL() {
+  std::optional<MPI_Status> statusOpt =
+      checkForMessage(m_universe.replWorld.com, m_replRank);
+  if (statusOpt.has_value()) {
+    json query = recv(statusOpt.value(), m_universe.replWorld.com);
+    auto type = Message::getType(query);
+    if (type == Message::Type::REPL_INFO)
+      handleREPLInfo(query);
+    else if (type == Message::Type::REPL_START)
+      handleREPLStart(query);
+    else if (type == Message::Type::REPL_CRASH)
+      handleREPLCrash(query);
+    else if (type == Message::Type::REPL_SPEED)
+      handleREPLSpeed(query);
+    else if (type == Message::Type::REPL_STOP) {
+      m_isRunning = false;
+    }
+  }
+}
+
 void Client::run() {
-  bool isRunning = true;
+  m_isRunning = true;
 
   spdlog::info("Client {} started.", m_universe.replWorld.rank);
 
-  while (isRunning) {
-    std::optional<MPI_Status> statusOpt =
-        checkForMessage(m_universe.replWorld.com, m_replRank);
-    if (statusOpt.has_value()) {
-      json query = recv(statusOpt.value(), m_universe.replWorld.com);
-      auto type = Message::getType(query);
-      if (type == Message::Type::REPL_INFO)
-        handleREPLInfo(query);
-      else if (type == Message::Type::REPL_START)
-        handleREPLStart(query);
-      else if (type == Message::Type::REPL_CRASH)
-        handleREPLCrash(query);
-      else if (type == Message::Type::REPL_SPEED)
-        handleREPLSpeed(query);
-      else if (type == Message::Type::REPL_STOP) {
-        isRunning = false;
-        continue;
-      }
-    }
+  while (m_isRunning) {
+    checkREPL();
+    if (!m_isRunning)
+      break;
 
     if (!m_isStarted || m_isCrashed) continue;
 
@@ -76,7 +81,8 @@ void Client::run() {
 
       if (m_currentTime - m_startTime > m_requestTimeout) {
         // Send request to the known leader
-        spdlog::info("Sending {}", m_commands[m_currentCommand]->toJSON().dump());
+        spdlog::info("Sending {}",
+                     m_commands[m_currentCommand]->toJSON().dump());
         send(*(m_commands[m_currentCommand]), m_leaderId,
              m_universe.clientServerWorld.com);
         m_startTime = std::chrono::system_clock::now();

@@ -57,6 +57,8 @@ class Server : ::REPL::Process {
   std::chrono::_V2::system_clock::time_point m_start_time;
   std::chrono::_V2::system_clock::time_point m_current_time;
 
+  virtual void checkREPL() override;
+
  public:
   Server(Universe universe, int replRank);
 

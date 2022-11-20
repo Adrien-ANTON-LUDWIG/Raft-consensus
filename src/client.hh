@@ -43,6 +43,8 @@ class Client : ::REPL::Process {
   Client(Universe universe, int nbServer, int replRank);
   ~Client();
 
+  virtual void checkREPL() override;
+
   /// @brief Main loop of the client
   void run();
 

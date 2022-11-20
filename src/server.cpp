@@ -11,8 +11,7 @@
 
 using namespace MessageNS;
 
-Server::Server(Universe universe, int replRank)
-    : ::REPL::Process(replRank) {
+Server::Server(Universe universe, int replRank) : ::REPL::Process(replRank) {
   m_universe = universe;
 
   std::srand(universe.replWorld.rank);
@@ -23,31 +22,37 @@ Server::Server(Universe universe, int replRank)
   m_nextIndex = std::vector<int>(universe.replWorld.world_size, 1);
   m_matchIndex = std::vector<int>(universe.replWorld.world_size, 0);
 
-  spdlog::debug("{}: Election timeout: {}", universe.serverWorld.rank, m_election_timeout.count());
+  spdlog::debug("{}: Election timeout: {}", universe.serverWorld.rank,
+                m_election_timeout.count());
+}
+
+void Server::checkREPL() {
+  std::optional<MPI_Status> statusOpt =
+      checkForMessage(m_universe.replWorld.com, m_replRank);
+  if (statusOpt.has_value()) {
+    json query = recv(statusOpt.value(), m_universe.replWorld.com);
+    auto type = Message::getType(query);
+    if (type == Message::Type::REPL_INFO)
+      handleREPLInfo(query);
+    else if (type == Message::Type::REPL_CRASH)
+      handleREPLCrash(query);
+    else if (type == Message::Type::REPL_SPEED) {
+      handleREPLSpeed(query);
+    } else if (type == Message::Type::REPL_STOP) {
+      std::cout << m_universe.replWorld.rank << " stopping" << std::endl;
+      m_logs.writeLogs(m_universe.replWorld.rank);
+      m_isRunning = false;
+    }
+  }
 }
 
 void Server::run() {
-  bool isRunning = true;
+  m_isRunning = true;
   spdlog::info("Server {} started.", m_universe.replWorld.rank);
 
-  while (isRunning) {
-    std::optional<MPI_Status> statusOpt = checkForMessage(m_universe.replWorld.com, m_replRank);
-    if (statusOpt.has_value()) {
-      json query = recv(statusOpt.value(), m_universe.replWorld.com);
-      auto type = Message::getType(query);
-      if (type == Message::Type::REPL_INFO)
-        handleREPLInfo(query);
-      else if (type == Message::Type::REPL_CRASH)
-        handleREPLCrash(query);
-      else if (type == Message::Type::REPL_SPEED) {
-        handleREPLSpeed(query);
-      } else if (type == Message::Type::REPL_STOP) {
-        std::cout << m_universe.replWorld.rank << " stopping" << std::endl;
-        m_logs.writeLogs(m_universe.replWorld.rank);
-        isRunning = false;
-        continue;
-      }
-    }
+  while (m_isRunning) {
+    checkREPL();
+    if (!m_isRunning) break;
 
     if (m_isCrashed) continue;
 
