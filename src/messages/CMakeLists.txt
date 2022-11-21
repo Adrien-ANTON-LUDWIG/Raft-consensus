@@ -33,6 +33,8 @@ set (REPL_sources
     REPL/crash.hh
     REPL/info.cpp
     REPL/info.hh
+    REPL/recovery.cpp
+    REPL/recovery.hh
     REPL/speed.cpp
     REPL/speed.hh
     REPL/start.cpp

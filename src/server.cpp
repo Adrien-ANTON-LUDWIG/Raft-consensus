@@ -16,7 +16,7 @@ Server::Server(Universe universe, int replRank) : ::REPL::Process(replRank)
 {
   m_universe = universe;
 
-  std::srand(universe.replWorld.rank);
+  std::srand(universe.replWorld.rank + 1);
   m_election_timeout = std::chrono::milliseconds(std::rand() % 150 + 150);
   m_heartbeat_timeout = std::chrono::milliseconds(50);
   m_start_time = std::chrono::system_clock::now();
@@ -41,9 +41,9 @@ void Server::checkREPL()
     else if (type == Message::Type::REPL_CRASH)
       handleREPLCrash(query);
     else if (type == Message::Type::REPL_SPEED)
-    {
       handleREPLSpeed(query);
-    }
+    else if (type == Message::Type::REPL_RECOVERY)
+      handleREPLRecovery(query);
     else if (type == Message::Type::REPL_STOP)
     {
       m_logs.writeLogs(m_universe.replWorld.rank);

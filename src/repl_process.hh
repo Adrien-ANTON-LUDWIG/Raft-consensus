@@ -19,6 +19,7 @@ class Process {
   virtual void checkREPL() = 0;
   void handleREPLSpeed(const json& json);
   void handleREPLCrash(const json& json);
+  void handleREPLRecovery(const json& json);
   virtual void handleREPLInfo(const json& json) = 0;
 };
 }  // namespace REPL

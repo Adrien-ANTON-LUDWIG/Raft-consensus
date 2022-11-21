@@ -62,5 +62,5 @@ mpiexec --mca opal_warn_on_missing_libcuda 0 -np ${total_size} --stdin ${repl_id
 if [ $show_logs -eq 1 ]
 then
     echo "Displaying logs"
-    cat build/logs.txt
+    cat logs/global_logs.log
 fi
