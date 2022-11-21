@@ -42,6 +42,9 @@ int Logs::getTerm(int index) const {
 }
 
 std::vector<Logs::Log> Logs::getLastLogs(int startIndex) {
+  if (startIndex < 0 || startIndex >= int(m_log.size())) {
+    throw std::runtime_error("Invalid startIndex " + std::to_string(startIndex) + " for getLastLogs with log size " + std::to_string(m_log.size()));
+  }
   return std::vector<Log>(m_log.begin() + startIndex, m_log.end());
 }
 
