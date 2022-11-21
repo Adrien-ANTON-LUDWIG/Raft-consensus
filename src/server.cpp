@@ -301,9 +301,6 @@ void Server::leaderUpdate()
           m_term, m_universe.serverWorld.rank, prevLogIndex, prevLogTerm,
           m_logs.getLastLogs(m_nextIndex[rank] - 1), m_logs.getCommitIndex());
       send(appendEntries, rank, m_universe.serverWorld.com);
-
-      // Reset heartbeat timer
-      m_start_time = std::chrono::system_clock::now();
     }
   }
 
