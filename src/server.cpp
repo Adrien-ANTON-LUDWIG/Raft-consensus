@@ -283,21 +283,24 @@ void Server::leaderUpdate()
   // Send appendEntries RPCs to each follower
   for (int rank = 0; rank < m_universe.serverWorld.world_size; rank++)
   {
-    if (rank == m_universe.serverWorld.rank)
+    if (rank == m_universe.serverWorld.rank || m_logs.getLastIndex() < m_nextIndex[rank]) {
       continue;
+    }
+    else {
+      int prevLogIndex = m_nextIndex[rank] - 1;
+      int prevLogTerm = -1;
+      if (prevLogIndex > 0 && prevLogIndex <= m_logs.getLastIndex())
+        prevLogTerm = m_logs.getTerm(prevLogIndex - 1);
+        // m_logs.getLog(prevLogIndex).getTerm();
+      else if (prevLogIndex != 0)
+        throw std::logic_error("prevLogTerm should be set");
 
-    int prevLogIndex = m_nextIndex[rank] - 1;
-    int prevLogTerm = -1;
-    if (prevLogIndex > 0 && prevLogIndex < m_logs.getLastIndex())
-      m_logs.getLog(prevLogIndex).getTerm();
-
-    if (m_logs.getLastIndex() >= m_nextIndex[rank])
-    {
       // If last log index ≥ nextIndex for a follower: send
       // AppendEntries RPC with log entries starting at nextIndex=
       RPC::AppendEntries appendEntries(
           m_term, m_universe.serverWorld.rank, prevLogIndex, prevLogTerm,
           m_logs.getLastLogs(m_nextIndex[rank] - 1), m_logs.getCommitIndex());
+      spdlog::debug("{}: Send appendEntries to {}, nextIndex = {} : {}", m_universe.serverWorld.rank, rank, m_nextIndex[rank], appendEntries.toJSON().dump());
       send(appendEntries, rank, m_universe.serverWorld.com);
 
       // Reset heartbeat timer
@@ -320,8 +323,8 @@ void Server::sendHeartbeat()
       continue;
     int prevLogIndex = m_nextIndex[rank] - 1;
     int prevLogTerm = -1;
-    if (prevLogIndex > 0 && prevLogIndex < m_logs.getLastIndex())
-      m_logs.getLog(prevLogIndex).getTerm();
+    if (prevLogIndex > 0 && prevLogIndex <= m_logs.getLastIndex())
+      prevLogTerm = m_logs.getLog(prevLogIndex - 1).getTerm();
     auto heartbeat = RPC::AppendEntries::createHeartbeat(
         m_term, m_universe.serverWorld.rank, prevLogIndex, prevLogTerm,
         m_logs.getCommitIndex());
