@@ -138,7 +138,7 @@ void Server::handleAppendEntriesResponse(const json &json)
     // If AppendEntries fails because of log inconsistency: decrement nextIndex
     // and retry
     m_nextIndex[response.getOriginId()] =
-        std::min(m_nextIndex[response.getOriginId()] - 1, 1);
+        std::max(m_nextIndex[response.getOriginId()] - 1, 1);
   }
 
   // If there exists an N such that N > commitIndex, a majority of

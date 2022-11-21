@@ -125,10 +125,12 @@ void Server::followerUpdate()
     else if (status_server->MPI_TAG == Message::Type::RPC_APPEND_ENTRIES)
       handleAppendEntries(data);
     else
-    { // non expected or invalid message -> drop
+    { 
+      // non expected or invalid message -> drop
       dropMessage(data);
     }
   }
+
 
   // Redirect clients to leader if received message
   std::optional<MPI_Status> status_client =
