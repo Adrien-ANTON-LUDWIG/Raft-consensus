@@ -96,7 +96,7 @@ void Server::handleAppendEntries(const json &json)
 
   // Delete all entries after previous log index
   if (m_logs.getLastIndex() > 0)
-    m_logs.deleteLastLogs(appendEntry.getPreviousLogIdx() + 1);
+    m_logs.deleteLastLogs(appendEntry.getPreviousLogIdx());
 
   // Append any new entries not already in the log
   m_logs.addLogs(appendEntry.getEntries());
