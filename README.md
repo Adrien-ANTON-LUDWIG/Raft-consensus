@@ -1,13 +1,12 @@
 # ALGOREP Project
 
-#### Authors:
-ANTON-LUDWIG Adrien
-GIDEL Melvin
-INDJEIN Nicolas
-LORRAIN Nicolas
-PLUQUET Adèle
+### Authors:
+ - ANTON-LUDWIG Adrien
+ - GIDEL Melvin
+ - INDJEIN Nicolas
+ - LORRAIN Nicolas
+ - PLUQUET Adèle
 
-<br/>
 ## Usage
 
 Build : 
@@ -28,7 +27,6 @@ flags:
 --cli           Force CLI mode for REPL
 ```
 
-<br/>
 ## REPL CLI Usage
 
 For commands CRASH and START, you have to specify the rank of the process you want to alter.
@@ -62,7 +60,7 @@ Usage: speed <rank> low|medium|high
 ```sh
 REPL CLI enabled
 Server ranks: [0, 2] | Client ranks: [3, 4]
-> crash 0
+> speed 2 low
 >
 ```
 \
@@ -81,15 +79,16 @@ Server (rank 0) infos:
 - Is leader: NO
 > 
 ```
-<br/>
+
 ## Command List Usage
 
 For the command list usable by clients, you have to use a command file. You have to specify it with the flag ```--commands```.
 In this file, you can write your commands like below:
 
-```--```: Sets the next client to listen to the following commands.
-```<CMD> <args>```: Send the command ```CMD``` to the servers with the right ```args```.
-```$```: Specifies the end of commands. On the next lines, you can write REPL commands with shell.
+```--```: Sets the next client to listen to the following commands.\
+```<CMD> <args>```: Send the command ```CMD``` to the servers with the right ```args```.\
+```$```: Specifies the end of commands. On the next lines, you can add REPL commands.
+```@<time>```: Sleeps for ```time``` milliseconds. Can only be used while in the REPL commands part.
 
 Example file :
 ```txt
@@ -108,5 +107,5 @@ start 5
 exit
 ```
 
-This file will have clients 0,1 and 2 (with resp. ranks 3,4 and 5 because we assume there are two servers), to load the following files. Were you to have more clients, they would not do anything, even if started.
+This file will have clients 0, 1 and 2 (with resp. ranks 3, 4 and 5 because we assume there are two servers), to load the following files. Were you to have more clients, they would not do anything, even if started.
 If client 1 (rank 4) were not started, client 2 (rank 5) would still try to load "file4.txt" and not try to do the work of client 1.
