@@ -1,2 +1,6 @@
 --
 LOAD file.txt
+$
+start 3
+@3000
+exit

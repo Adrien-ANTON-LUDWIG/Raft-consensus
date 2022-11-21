@@ -26,7 +26,7 @@ int main(int argc, char** argv) {
 
   if (argc < 3) {
     std::cerr << "Invalid argument count. Received " << argc - 1
-              << ", expected 2." << std::endl;
+              << ", expected at least 2." << std::endl;
     return 1;
   }
 
@@ -84,8 +84,8 @@ int main(int argc, char** argv) {
     // std::cout << universe << std::endl;
 
     Client client(universe, server_count, replRank);
-    if (argc == 4)
-      client.loadCommands(argv[3]);
+    if (argc == 5)
+      client.loadCommands(argv[4]);
 
     client.run();
   }
@@ -96,7 +96,7 @@ int main(int argc, char** argv) {
     // Mark as not participating to client-server communication channel creation
     MPI_Comm_split(MPI_COMM_WORLD, MPI_UNDEFINED, rank, &universe.clientServerWorld.com);
 
-    REPL::init(universe);
+    REPL::init(universe, argc == 5 && argv[3][0] == '0' ? argv[4] : "");
     REPL::start(client_count, server_count);
   }
 

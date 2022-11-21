@@ -5,3 +5,7 @@ LOAD file3.txt
 LOAD file4.txt
 LOAD file5.txt
 LOAD file6.txt
+$
+start 3
+@10000
+exit
