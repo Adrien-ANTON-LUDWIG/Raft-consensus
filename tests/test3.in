@@ -1,4 +1,7 @@
 --
 LOAD file1.txt
---
 LOAD file2.txt
+LOAD file3.txt
+LOAD file4.txt
+LOAD file5.txt
+LOAD file6.txt
