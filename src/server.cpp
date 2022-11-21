@@ -213,29 +213,30 @@ void Server::becomeLeader() {
 }
 
 void Server::leaderUpdate() {
-  // Check for new messages
-  std::optional<MPI_Status> status =
+  // Check for RPC messages
+  std::optional<MPI_Status> rpcStatus =
       checkForMessage(m_universe.serverWorld.com);
 
-  if (status.has_value()) {
-    json data = recv(*status, m_universe.serverWorld.com);
-    if (status->MPI_TAG == Message::Type::RPC_REQUEST_VOTE)
+  if (rpcStatus.has_value()) {
+    json data = recv(*rpcStatus, m_universe.serverWorld.com);
+    if (rpcStatus->MPI_TAG == Message::Type::RPC_REQUEST_VOTE)
       handleRequestVote(data);
-    else if (status->MPI_TAG == Message::Type::RPC_APPEND_ENTRIES)
+    else if (rpcStatus->MPI_TAG == Message::Type::RPC_APPEND_ENTRIES)
       handleAppendEntries(data);
-    else if (status->MPI_TAG == Message::Type::RPC_APPEND_ENTRIES_RESPONSE)
+    else if (rpcStatus->MPI_TAG == Message::Type::RPC_APPEND_ENTRIES_RESPONSE)
       handleAppendEntriesResponse(data);
   }
 
-  status = checkForMessage(m_universe.clientServerWorld.com);
-  if (status.has_value()) {
+  // Check for clients commands
+  std::optional<MPI_Status> cmdStatus = checkForMessage(m_universe.clientServerWorld.com);
+  if (cmdStatus.has_value()) {
     // If command received from client: append entry to local log,
     // respond after entry applied to state machine (§5.3)
 
-    json data = recv(*status, m_universe.clientServerWorld.com);
-    if (Message::isCMD(status->MPI_TAG)) {
+    json data = recv(*cmdStatus, m_universe.clientServerWorld.com);
+    if (Message::isCMD(cmdStatus->MPI_TAG)) {
       m_logs.addLog(m_term, data);
-      if (status->MPI_TAG == Message::Type::CMD_LOAD) handleLoad(data);
+      if (cmdStatus->MPI_TAG == Message::Type::CMD_LOAD) handleLoad(data);
     } else  // non expected or invalid message -> drop
       dropMessage(data);
   }
