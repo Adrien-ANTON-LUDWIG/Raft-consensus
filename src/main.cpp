@@ -18,7 +18,7 @@ int main(int argc, char** argv) {
   auto logger =
       spdlog::basic_logger_mt("basic_logger", "./build/logs.txt", true);
   spdlog::set_default_logger(logger);
-  spdlog::set_level(spdlog::level::info);
+  spdlog::set_level(spdlog::level::debug);
   spdlog::set_pattern("[%H:%M:%S.%e] [%^%l%$] %v");
   spdlog::flush_on(spdlog::level::info);
 

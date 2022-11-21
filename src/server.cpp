@@ -12,7 +12,8 @@
 
 using namespace MessageNS;
 
-Server::Server(Universe universe, int replRank) : ::REPL::Process(replRank) {
+Server::Server(Universe universe, int replRank) : ::REPL::Process(replRank)
+{
   m_universe = universe;
 
   std::srand(universe.replWorld.rank);
@@ -27,34 +28,43 @@ Server::Server(Universe universe, int replRank) : ::REPL::Process(replRank) {
                 m_election_timeout.count());
 }
 
-void Server::checkREPL() {
+void Server::checkREPL()
+{
   std::optional<MPI_Status> statusOpt =
       checkForMessage(m_universe.replWorld.com, m_replRank);
-  if (statusOpt.has_value()) {
+  if (statusOpt.has_value())
+  {
     json query = recv(statusOpt.value(), m_universe.replWorld.com);
     auto type = Message::getType(query);
     if (type == Message::Type::REPL_INFO)
       handleREPLInfo(query);
     else if (type == Message::Type::REPL_CRASH)
       handleREPLCrash(query);
-    else if (type == Message::Type::REPL_SPEED) {
+    else if (type == Message::Type::REPL_SPEED)
+    {
       handleREPLSpeed(query);
-    } else if (type == Message::Type::REPL_STOP) {
+    }
+    else if (type == Message::Type::REPL_STOP)
+    {
       m_logs.writeLogs(m_universe.replWorld.rank);
       m_isRunning = false;
     }
   }
 }
 
-void Server::run() {
+void Server::run()
+{
   m_isRunning = true;
   spdlog::info("Server {} started.", m_universe.replWorld.rank);
 
-  while (m_isRunning) {
+  while (m_isRunning)
+  {
     checkREPL();
-    if (!m_isRunning) break;
+    if (!m_isRunning)
+      break;
 
-    if (m_isCrashed) continue;
+    if (m_isCrashed)
+      continue;
 
     if (std::chrono::duration<float, std::milli>(
             std::chrono::system_clock::now() - m_speedCheckpoint) <
@@ -67,16 +77,17 @@ void Server::run() {
     // Apply committed logs
     m_logs.apply();
 
-    switch (m_state) {
-      case LEADER:
-        leaderUpdate();
-        break;
-      case CANDIDATE:
-        candidateUpdate();
-        break;
-      default:  // FOLLOWER
-        followerUpdate();
-        break;
+    switch (m_state)
+    {
+    case LEADER:
+      leaderUpdate();
+      break;
+    case CANDIDATE:
+      candidateUpdate();
+      break;
+    default: // FOLLOWER
+      followerUpdate();
+      break;
     }
   }
 
@@ -85,8 +96,10 @@ void Server::run() {
 }
 
 // FOLLOWER
-void Server::becomeFollower() {
-  if (m_state != FOLLOWER) {
+void Server::becomeFollower()
+{
+  if (m_state != FOLLOWER)
+  {
     spdlog::debug("{}: Become follower", m_universe.serverWorld.rank);
 
     // Update state
@@ -98,18 +111,21 @@ void Server::becomeFollower() {
   m_vote_count = 0;
 }
 
-void Server::followerUpdate() {
+void Server::followerUpdate()
+{
   // Respond to RPCs from candidates and leaders
   std::optional<MPI_Status> status_server =
       checkForMessage(m_universe.serverWorld.com);
 
-  if (status_server.has_value()) {
+  if (status_server.has_value())
+  {
     json data = recv(*status_server, m_universe.serverWorld.com);
     if (status_server->MPI_TAG == Message::Type::RPC_REQUEST_VOTE)
       handleRequestVote(data);
     else if (status_server->MPI_TAG == Message::Type::RPC_APPEND_ENTRIES)
       handleAppendEntries(data);
-    else {  // non expected or invalid message -> drop
+    else
+    { // non expected or invalid message -> drop
       dropMessage(data);
     }
   }
@@ -118,14 +134,16 @@ void Server::followerUpdate() {
   std::optional<MPI_Status> status_client =
       checkForMessage(m_universe.clientServerWorld.com);
 
-  if (status_client.has_value()) {
+  if (status_client.has_value())
+  {
     json data = recv(*status_client, m_universe.clientServerWorld.com);
-    if (Message::isCMD(status_client->MPI_TAG)) {
+    if (Message::isCMD(status_client->MPI_TAG))
+    {
       Redirect redirection(m_leaderId, m_universe.clientServerWorld.rank);
       send(redirection, status_client->MPI_SOURCE,
            m_universe.clientServerWorld.com);
     }
-    dropMessage(data);
+    dropMessage(data, true);
   }
 
   // Election timeout : convert to candidate
@@ -134,7 +152,8 @@ void Server::followerUpdate() {
 }
 
 // ELECTION
-void Server::becomeCandidate() {
+void Server::becomeCandidate()
+{
   // START ELECTION
   spdlog::debug("{}: Become candidate", m_universe.serverWorld.rank);
 
@@ -158,21 +177,25 @@ void Server::becomeCandidate() {
           m_universe.serverWorld.world_size, m_universe.serverWorld.com);
 }
 
-void Server::candidateUpdate() {
+void Server::candidateUpdate()
+{
   // If votes received from majority of servers: become leader
-  if (m_vote_count > m_universe.serverWorld.world_size / 2) becomeLeader();
+  if (m_vote_count > m_universe.serverWorld.world_size / 2)
+    becomeLeader();
 
   // If AppendEntries RPC received from new leader: convert to follower
   std::optional<MPI_Status> status_server =
       checkForMessage(m_universe.serverWorld.com);
 
-  if (status_server.has_value()) {
+  if (status_server.has_value())
+  {
     json data = recv(*status_server, m_universe.serverWorld.com);
     if (status_server->MPI_TAG == Message::Type::RPC_VOTE)
       handleVote(data);
     else if (status_server->MPI_TAG == Message::Type::RPC_APPEND_ENTRIES)
       handleAppendEntries(data);
-    else {  // non expected or invalid message -> drop
+    else
+    { // non expected or invalid message -> drop
       dropMessage(data);
     }
   }
@@ -181,21 +204,25 @@ void Server::candidateUpdate() {
   std::optional<MPI_Status> status_client =
       checkForMessage(m_universe.clientServerWorld.com);
 
-  if (status_client.has_value()) {
-    if (Message::isCMD(status_client->MPI_TAG)) {
+  if (status_client.has_value())
+  {
+    if (Message::isCMD(status_client->MPI_TAG))
+    {
       Redirect redirection(-1, m_universe.clientServerWorld.rank);
       send(redirection, status_client->MPI_SOURCE,
            m_universe.clientServerWorld.com);
     }
-    dropMessage(recv(*status_client, m_universe.clientServerWorld.com));
+    dropMessage(recv(*status_client, m_universe.clientServerWorld.com), true);
   }
 
   // If election timeout elapses: start new election
-  if (m_current_time - m_start_time >= m_election_timeout) becomeCandidate();
+  if (m_current_time - m_start_time >= m_election_timeout)
+    becomeCandidate();
 }
 
 // LEADER
-void Server::becomeLeader() {
+void Server::becomeLeader()
+{
   spdlog::debug("{}: Become leader", m_universe.serverWorld.rank);
 
   // Update state
@@ -212,12 +239,14 @@ void Server::becomeLeader() {
   sendHeartbeat();
 }
 
-void Server::leaderUpdate() {
+void Server::leaderUpdate()
+{
   // Check for RPC messages
   std::optional<MPI_Status> rpcStatus =
       checkForMessage(m_universe.serverWorld.com);
 
-  if (rpcStatus.has_value()) {
+  if (rpcStatus.has_value())
+  {
     json data = recv(*rpcStatus, m_universe.serverWorld.com);
     if (rpcStatus->MPI_TAG == Message::Type::RPC_REQUEST_VOTE)
       handleRequestVote(data);
@@ -229,27 +258,35 @@ void Server::leaderUpdate() {
 
   // Check for clients commands
   std::optional<MPI_Status> cmdStatus = checkForMessage(m_universe.clientServerWorld.com);
-  if (cmdStatus.has_value()) {
+  if (cmdStatus.has_value())
+  {
     // If command received from client: append entry to local log,
     // respond after entry applied to state machine (§5.3)
 
     json data = recv(*cmdStatus, m_universe.clientServerWorld.com);
-    if (Message::isCMD(cmdStatus->MPI_TAG)) {
+    if (Message::isCMD(cmdStatus->MPI_TAG))
+    {
       m_logs.addLog(m_term, data);
-      if (cmdStatus->MPI_TAG == Message::Type::CMD_LOAD) handleLoad(data);
-    } else  // non expected or invalid message -> drop
+      if (cmdStatus->MPI_TAG == Message::Type::CMD_LOAD)
+        handleLoad(data);
+    }
+    else // non expected or invalid message -> drop
       dropMessage(data);
   }
 
   // Send appendEntries RPCs to each follower
-  for (int rank = 0; rank < m_universe.serverWorld.world_size; rank++) {
-    if (rank == m_universe.serverWorld.rank) continue;
+  for (int rank = 0; rank < m_universe.serverWorld.world_size; rank++)
+  {
+    if (rank == m_universe.serverWorld.rank)
+      continue;
 
     int prevLogIndex = m_nextIndex[rank] - 1;
     int prevLogTerm = -1;
-    if (prevLogIndex > 0 && prevLogIndex < m_logs.getLastIndex()) m_logs.getLog(prevLogIndex).getTerm();
+    if (prevLogIndex > 0 && prevLogIndex < m_logs.getLastIndex())
+      m_logs.getLog(prevLogIndex).getTerm();
 
-    if (m_logs.getLastIndex() >= m_nextIndex[rank]) {
+    if (m_logs.getLastIndex() >= m_nextIndex[rank])
+    {
       // If last log index ≥ nextIndex for a follower: send
       // AppendEntries RPC with log entries starting at nextIndex=
       RPC::AppendEntries appendEntries(
@@ -262,18 +299,23 @@ void Server::leaderUpdate() {
     }
   }
 
-  if (m_current_time - m_start_time >= m_heartbeat_timeout) {
+  if (m_current_time - m_start_time >= m_heartbeat_timeout)
+  {
     // Idle period -> sending heartbeat
     sendHeartbeat();
   }
 }
 
-void Server::sendHeartbeat() {
-  for (int rank = 0; rank < m_universe.serverWorld.world_size; rank++) {
-    if (rank == m_universe.serverWorld.rank) continue;
+void Server::sendHeartbeat()
+{
+  for (int rank = 0; rank < m_universe.serverWorld.world_size; rank++)
+  {
+    if (rank == m_universe.serverWorld.rank)
+      continue;
     int prevLogIndex = m_nextIndex[rank] - 1;
     int prevLogTerm = -1;
-    if (prevLogIndex > 0 && prevLogIndex < m_logs.getLastIndex()) m_logs.getLog(prevLogIndex).getTerm();
+    if (prevLogIndex > 0 && prevLogIndex < m_logs.getLastIndex())
+      m_logs.getLog(prevLogIndex).getTerm();
     auto heartbeat = RPC::AppendEntries::createHeartbeat(
         m_term, m_universe.serverWorld.rank, prevLogIndex, prevLogTerm,
         m_logs.getCommitIndex());
@@ -285,13 +327,24 @@ void Server::sendHeartbeat() {
 }
 
 // UTILS
-void Server::dropMessage(const Message &message) {
-  spdlog::debug("{}: Dropping message {}", m_universe.serverWorld.rank,
-                message.toJSON().dump());
+void Server::dropMessage(const Message &message, bool isRedirected)
+{
+  if (isRedirected)
+  {
+    spdlog::debug("{}: Redirecting message {}", m_universe.serverWorld.rank,
+                  message.toJSON().dump());
+  }
+  else
+  {
+    spdlog::warn("{}: Dropping message {}", m_universe.serverWorld.rank,
+                  message.toJSON().dump());
+  }
 }
 
-void Server::checkTerm(int term) {
-  if (term > m_term) {
+void Server::checkTerm(int term)
+{
+  if (term > m_term)
+  {
     m_term = term;
     becomeFollower();
   }

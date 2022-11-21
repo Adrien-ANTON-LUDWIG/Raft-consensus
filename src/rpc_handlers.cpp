@@ -60,8 +60,11 @@ void Server::handleAppendEntries(const json &json)
   RPC::AppendEntries appendEntry(json);
   checkTerm(appendEntry.getTerm());
 
-  spdlog::debug("{}: Received append entries from {}", m_universe.serverWorld.rank,
-                appendEntry.getLeader());
+  if (!appendEntry.isHeartbeat())
+  {
+    spdlog::debug("{}: Received append entries from {}", m_universe.serverWorld.rank,
+                  appendEntry.getLeader());
+  }
 
   // Create response
   RPC::AppendEntriesResponse response(m_term, false, m_universe.serverWorld.rank);
@@ -120,8 +123,8 @@ void Server::handleAppendEntriesResponse(const json &json)
     return;
   }
 
-  spdlog::debug("{}: Received append entries response from {}", m_universe.serverWorld.rank,
-                response.getOriginId());
+  // spdlog::debug("{}: Received append entries response from {}", m_universe.serverWorld.rank,
+  //               response.getOriginId());
 
   // Update nextIndex and matchIndex for follower
   if (response.isSuccess())

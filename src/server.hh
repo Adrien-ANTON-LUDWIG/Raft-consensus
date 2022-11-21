@@ -91,6 +91,6 @@ class Server : ::REPL::Process {
   virtual void handleREPLInfo(const json& json) override;
 
   // UTILS
-  void dropMessage(const MessageNS::Message& message);
+  void dropMessage(const MessageNS::Message& message, bool isRedirected = false);
   void checkTerm(int term);
 };
