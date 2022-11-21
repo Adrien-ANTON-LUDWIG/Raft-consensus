@@ -1,2 +1,5 @@
 --
 LOAD file.txt
+$
+@50
+exit
