@@ -252,22 +252,10 @@ void Server::leaderUpdate() {
     if (m_logs.getLastIndex() >= m_nextIndex[rank]) {
       // If last log index ≥ nextIndex for a follower: send
       // AppendEntries RPC with log entries starting at nextIndex=
-      bool appendFailed = false;
-      do {
-        RPC::AppendEntries appendEntries(
-            m_term, m_universe.serverWorld.rank, prevLogIndex, prevLogTerm,
-            m_logs.getLastLogs(m_nextIndex[rank]), m_logs.getCommitIndex());
-        send(appendEntries, rank, m_universe.serverWorld.com);
-
-        json responseData;
-        while (
-            waitForResponse(rank, m_universe.serverWorld.com, responseData)) {
-          checkREPL();
-          if (!m_isRunning) return;
-        }
-
-        handleAppendEntriesResponse(responseData);
-      } while (appendFailed);
+      RPC::AppendEntries appendEntries(
+          m_term, m_universe.serverWorld.rank, prevLogIndex, prevLogTerm,
+          m_logs.getLastLogs(m_nextIndex[rank] - 1), m_logs.getCommitIndex());
+      send(appendEntries, rank, m_universe.serverWorld.com);
 
       // Reset heartbeat timer
       m_start_time = std::chrono::system_clock::now();
@@ -290,11 +278,6 @@ void Server::sendHeartbeat() {
         m_term, m_universe.serverWorld.rank, prevLogIndex, prevLogTerm,
         m_logs.getCommitIndex());
     send(heartbeat, rank, m_universe.serverWorld.com);
-
-    // Flushing heartbeat response
-    json tmp;
-    while (waitForResponse(rank, m_universe.serverWorld.com, tmp)) {
-    }
   }
 
   // Reset heartbeat timer
