@@ -182,8 +182,10 @@ void Server::becomeCandidate()
 void Server::candidateUpdate()
 {
   // If votes received from majority of servers: become leader
-  if (m_vote_count > m_universe.serverWorld.world_size / 2)
+  if (m_vote_count > m_universe.serverWorld.world_size / 2) {
     becomeLeader();
+    return;
+  }
 
   // If AppendEntries RPC received from new leader: convert to follower
   std::optional<MPI_Status> status_server =
