@@ -125,22 +125,29 @@ namespace REPL
     {
       if (tokens.size() < 2)
       {
-        std::cerr << "Missing rank. Usage: start <rank>" << std::endl;
+        std::cerr << "Missing rank. Usage: start <rank>|all" << std::endl;
         return;
       }
 
-      if (!parseRank(tokens[1], rank))
-        return;
+      if (tokens[1] == "all") {
+        for (int rank = g_serverCount; rank < g_serverCount + g_clientCount; rank++) {
+          MessageNS::REPL::Start message(g_universe.replWorld.rank);
+          send(message, rank, g_universe.replWorld.com);
+        }
+      } else {
+        if (!parseRank(tokens[1], rank))
+          return;
 
-      if (rank < g_serverCount || rank >= g_serverCount + g_clientCount)
-      {
-        std::cerr << "Bad rank. Should be in range [" << g_serverCount << ","
-                  << g_universe.replWorld.rank - 1 << "]." << std::endl;
-        return;
+        if (rank < g_serverCount || rank >= g_serverCount + g_clientCount)
+        {
+          std::cerr << "Bad rank. Should be in range [" << g_serverCount << ","
+                    << g_universe.replWorld.rank - 1 << "]." << std::endl;
+          return;
+        }
+
+        MessageNS::REPL::Start message(g_universe.replWorld.rank);
+        send(message, rank, g_universe.replWorld.com);
       }
-
-      MessageNS::REPL::Start message(g_universe.replWorld.rank);
-      send(message, rank, g_universe.replWorld.com);
     }
     else if (cmd == "crash")
     {
@@ -216,7 +223,7 @@ namespace REPL
   {
     g_clientCount = clientCount;
     g_serverCount = serverCount;
-    
+
     if (g_commandsFile != "")
     {
       std::ifstream stream(g_commandsFile);
