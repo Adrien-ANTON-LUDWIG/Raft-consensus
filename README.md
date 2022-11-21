@@ -87,7 +87,7 @@ In this file, you can write your commands like below:
 
 ```--```: Sets the next client to listen to the following commands.\
 ```<CMD> <args>```: Send the command ```CMD``` to the servers with the right ```args```.\
-```$```: Specifies the end of commands. On the next lines, you can add REPL commands.
+```$```: Specifies the end of commands. On the next lines, you can add REPL commands.\
 ```@<time>```: Sleeps for ```time``` milliseconds. Can only be used while in the REPL commands part.
 
 Example file :
