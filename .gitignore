@@ -48,6 +48,3 @@ resources
 # Build
 build/
 logs/
-
-# Tests
-tests/

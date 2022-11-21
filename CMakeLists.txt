@@ -16,7 +16,7 @@ endif()
 
 # Compilation flags
 set(CMAKE_CXX_FLAGS "-pedantic -Werror -Wall -Wextra -std=c++17")
-set(CMAKE_CXX_FLAGS_DEBUG "-g3 -O0 -DDEBUG")
+set(CMAKE_CXX_FLAGS_DEBUG "-g3 -O0 -DDEBUG -fsanitize=address")
 set(CMAKE_CXX_FLAGS_RELEASE "-Ofast -DRELEASE -DNDEBUG -march=native")
 
 add_subdirectory(src/messages)
