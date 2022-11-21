@@ -300,7 +300,6 @@ void Server::leaderUpdate()
       RPC::AppendEntries appendEntries(
           m_term, m_universe.serverWorld.rank, prevLogIndex, prevLogTerm,
           m_logs.getLastLogs(m_nextIndex[rank] - 1), m_logs.getCommitIndex());
-      spdlog::debug("{}: Send appendEntries to {}, nextIndex = {} : {}", m_universe.serverWorld.rank, rank, m_nextIndex[rank], appendEntries.toJSON().dump());
       send(appendEntries, rank, m_universe.serverWorld.com);
 
       // Reset heartbeat timer
