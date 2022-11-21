@@ -72,7 +72,7 @@ void Logs::writeLogs(int serverID) {
   for (Log log : m_log) {
     json command = log.getCommand();
     command.erase("uuid");
-    command.erase("origin");
+    // command.erase("origin");
     file << command.dump() << std::endl;
   }
 
