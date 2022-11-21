@@ -39,7 +39,6 @@ void Server::checkREPL() {
     else if (type == Message::Type::REPL_SPEED) {
       handleREPLSpeed(query);
     } else if (type == Message::Type::REPL_STOP) {
-      std::cout << m_universe.replWorld.rank << " stopping" << std::endl;
       m_logs.writeLogs(m_universe.replWorld.rank);
       m_isRunning = false;
     }
@@ -80,7 +79,7 @@ void Server::run() {
     }
   }
 
-  spdlog::info("Server {} stopped.", m_universe.replWorld.rank);
+  spdlog::info("Server {} stopped with {} logs.", m_universe.replWorld.rank, m_logs.getLastIndex());
 }
 
 // FOLLOWER
@@ -240,8 +239,7 @@ void Server::leaderUpdate() {
   }
 
   // Send appendEntries RPCs to each follower
-  if (m_current_time - m_start_time >= m_heartbeat_timeout) {
-    for (int rank = 0; rank < m_universe.serverWorld.world_size; rank++) {
+  for (int rank = 0; rank < m_universe.serverWorld.world_size; rank++) {
       if (rank == m_universe.serverWorld.rank) continue;
 
       int prevLogIndex = m_nextIndex[rank] - 1;
@@ -254,14 +252,17 @@ void Server::leaderUpdate() {
 
       // If last log index ≥ nextIndex for a follower: send
       // AppendEntries RPC with log entries starting at nextIndex
-      if (m_logs.getLastIndex() >= m_nextIndex[rank])
+      if (m_logs.getLastIndex() >= m_nextIndex[rank]) {
         appendEntries.setEntries(m_logs.getLastLogs(m_nextIndex[rank]));
-      send(appendEntries, rank, m_universe.serverWorld.com);
-    }
-
-    // Reset heartbeat timer
-    m_start_time = std::chrono::system_clock::now();
+        send(appendEntries, rank, m_universe.serverWorld.com);
+      } else if (m_current_time - m_start_time >= m_heartbeat_timeout) {
+        // Idle time -> send heartbeat
+        send(appendEntries, rank, m_universe.serverWorld.com);
+      }
   }
+
+  // Reset heartbeat timer
+  m_start_time = std::chrono::system_clock::now();
 }
 
 void Server::sendHeartbeat() {
