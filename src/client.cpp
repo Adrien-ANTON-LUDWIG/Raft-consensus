@@ -121,7 +121,7 @@ void Client::run() {
     }
   }
 
-  spdlog::info("Client {} stopped.", m_universe.replWorld.rank);
+  spdlog::info("Client {} stopped with {}/{} messages treated.", m_universe.replWorld.rank, m_currentCommand, m_commands.size());
 }
 
 void Client::loadCommands(const std::string& path) {
