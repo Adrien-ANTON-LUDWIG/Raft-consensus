@@ -9,16 +9,18 @@
 
 using namespace MessageNS;
 
-void Server::handleRequestVote(const json &json) {
+void Server::handleRequestVote(const json &json)
+{
   RPC::RequestVote request(json);
   spdlog::debug("{}: Received request vote from {}", m_universe.serverWorld.rank,
-               request.getCandidate());
+                request.getCandidate());
   checkTerm(request.getTerm());
 
   bool grantVote = false;
 
   if (request.getTerm() >= m_term &&
-      (m_voted_for == -1 || m_voted_for == request.getCandidate())) {
+      (m_voted_for == -1 || m_voted_for == request.getCandidate()))
+  {
     grantVote = true;
     m_voted_for = request.getCandidate();
 
@@ -30,30 +32,36 @@ void Server::handleRequestVote(const json &json) {
   send(vote, request.getCandidate(), m_universe.serverWorld.com);
 }
 
-void Server::handleVote(const json &json) {
+void Server::handleVote(const json &json)
+{
   RPC::Vote vote(json);
   checkTerm(vote.getTerm());
 
   // Check state after checkTerm
-  if (m_state != CANDIDATE) {
+  if (m_state != CANDIDATE)
+  {
     spdlog::debug("{}: Received vote but not candidate", m_universe.serverWorld.rank);
     return;
   }
 
-  if (vote.isGranted()) {
+  if (vote.isGranted())
+  {
     m_vote_count++;
     spdlog::debug("{}: Vote granted by {}", m_universe.serverWorld.rank, vote.getOriginId());
-  } else {
+  }
+  else
+  {
     spdlog::debug("{}: Vote denied by {}", m_universe.serverWorld.rank, vote.getOriginId());
   }
 }
 
-void Server::handleAppendEntries(const json &json) {
+void Server::handleAppendEntries(const json &json)
+{
   RPC::AppendEntries appendEntry(json);
   checkTerm(appendEntry.getTerm());
 
   spdlog::debug("{}: Received append entries from {}", m_universe.serverWorld.rank,
-               appendEntry.getLeader());
+                appendEntry.getLeader());
 
   // Create response
   RPC::AppendEntriesResponse response(m_term, false, m_universe.serverWorld.rank);
@@ -68,7 +76,8 @@ void Server::handleAppendEntries(const json &json) {
   if (appendEntry.getTerm() < m_term || (m_state == FOLLOWER && !logOk))
     return send(response, appendEntry.getLeader(), m_universe.serverWorld.com);
 
-  if (m_state == CANDIDATE && appendEntry.getTerm() >= m_term) becomeFollower();
+  if (m_state == CANDIDATE && appendEntry.getTerm() >= m_term)
+    becomeFollower();
 
   // Accept AppendEntries
   response.setSuccess(true);
@@ -78,14 +87,16 @@ void Server::handleAppendEntries(const json &json) {
   m_leaderId = appendEntry.getLeader();
 
   // Nothing to do
-  if (appendEntry.isHeartbeat()) {
+  if (appendEntry.isHeartbeat())
+  {
     m_logs.updateCommitIndex(appendEntry.getLeaderCommit());
     response.setMatchIndex(m_logs.getLastIndex());
     return send(response, appendEntry.getLeader(), m_universe.serverWorld.com);
   }
 
   // Delete all entries after previous log index
-  m_logs.deleteLastLogs(appendEntry.getPreviousLogIdx() + 1);
+  if (m_logs.getLastIndex() > 0)
+    m_logs.deleteLastLogs(appendEntry.getPreviousLogIdx() + 1);
 
   // Append any new entries not already in the log
   m_logs.addLogs(appendEntry.getEntries());
@@ -98,24 +109,29 @@ void Server::handleAppendEntries(const json &json) {
   send(response, appendEntry.getLeader(), m_universe.serverWorld.com);
 }
 
-void Server::handleAppendEntriesResponse(const json &json) {
+void Server::handleAppendEntriesResponse(const json &json)
+{
   RPC::AppendEntriesResponse response(json);
   checkTerm(response.getTerm());
 
-  if (m_state != LEADER) {
+  if (m_state != LEADER)
+  {
     spdlog::debug("{}: Received append entries response but not leader", m_universe.serverWorld.rank);
     return;
   }
 
   spdlog::debug("{}: Received append entries response from {}", m_universe.serverWorld.rank,
-               response.getOriginId());
+                response.getOriginId());
 
   // Update nextIndex and matchIndex for follower
-  if (response.isSuccess()) {
+  if (response.isSuccess())
+  {
     // If successful: update nextIndex and matchIndex for follower
     m_nextIndex[response.getOriginId()] = response.getMatchIndex() + 1;
     m_matchIndex[response.getOriginId()] = response.getMatchIndex();
-  } else {
+  }
+  else
+  {
     // If AppendEntries fails because of log inconsistency: decrement nextIndex
     // and retry
     m_nextIndex[response.getOriginId()] =
@@ -127,7 +143,8 @@ void Server::handleAppendEntriesResponse(const json &json) {
   int N = m_logs.getCommitIndex() + 1;
   int count = std::count(m_matchIndex.begin(), m_matchIndex.end(), N);
   while (N <= m_logs.getLastIndex() && count > m_universe.serverWorld.world_size / 2 &&
-         m_logs.getTerm(N) == m_term) {
+         m_logs.getTerm(N) == m_term)
+  {
     N++;
     count = std::count(m_matchIndex.begin(), m_matchIndex.end(), N);
   }
