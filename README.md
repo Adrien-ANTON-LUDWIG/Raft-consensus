@@ -113,3 +113,5 @@ If client 1 (rank 4) were not started, client 2 (rank 5) would still try to load
 ## Running the tests
 
 Just run `./test_runner.sh` and wait.
+
+Be sure to have build the application before.
