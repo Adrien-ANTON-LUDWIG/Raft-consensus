@@ -247,7 +247,7 @@ void Server::leaderUpdate() {
 
     int prevLogIndex = m_nextIndex[rank] - 1;
     int prevLogTerm = -1;
-    if (prevLogIndex > 0) m_logs.getLog(prevLogIndex).getTerm();
+    if (prevLogIndex > 0 && prevLogIndex < m_logs.getLastIndex()) m_logs.getLog(prevLogIndex).getTerm();
 
     if (m_logs.getLastIndex() >= m_nextIndex[rank]) {
       // If last log index ≥ nextIndex for a follower: send
@@ -273,7 +273,7 @@ void Server::sendHeartbeat() {
     if (rank == m_universe.serverWorld.rank) continue;
     int prevLogIndex = m_nextIndex[rank] - 1;
     int prevLogTerm = -1;
-    if (prevLogIndex > 0) m_logs.getLog(prevLogIndex).getTerm();
+    if (prevLogIndex > 0 && prevLogIndex < m_logs.getLastIndex()) m_logs.getLog(prevLogIndex).getTerm();
     auto heartbeat = RPC::AppendEntries::createHeartbeat(
         m_term, m_universe.serverWorld.rank, prevLogIndex, prevLogTerm,
         m_logs.getCommitIndex());

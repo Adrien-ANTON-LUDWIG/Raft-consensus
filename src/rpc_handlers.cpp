@@ -66,7 +66,7 @@ void Server::handleAppendEntries(const json &json)
   // Create response
   RPC::AppendEntriesResponse response(m_term, false, m_universe.serverWorld.rank);
 
-  bool logOk = appendEntry.getPreviousLogIdx() == 0 ||
+  bool logOk = appendEntry.getPreviousLogIdx() == 0 || appendEntry.getPreviousLogIdx() >= m_logs.getLastIndex() ||
                (m_logs.contains(appendEntry.getPreviousLogIdx()) &&
                 appendEntry.getPreviousLogTerm() ==
                     m_logs.getTerm(appendEntry.getPreviousLogIdx()));
@@ -142,11 +142,12 @@ void Server::handleAppendEntriesResponse(const json &json)
   // matchIndex[i] >= N, and log[N].term == currentTerm: set commitIndex = N
   int N = m_logs.getCommitIndex() + 1;
   int count = std::count(m_matchIndex.begin(), m_matchIndex.end(), N);
-  while (N <= m_logs.getLastIndex() && count > m_universe.serverWorld.world_size / 2 &&
-         m_logs.getTerm(N) == m_term)
+  while (N <= m_logs.getLastIndex() && count > m_universe.serverWorld.world_size / 2)
   {
     N++;
     count = std::count(m_matchIndex.begin(), m_matchIndex.end(), N);
   }
-  m_logs.updateCommitIndex(N - 1);
+
+  if (N < m_logs.getLastIndex())
+    m_logs.updateCommitIndex(N - 1);
 }

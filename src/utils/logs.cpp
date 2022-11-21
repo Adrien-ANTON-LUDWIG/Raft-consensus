@@ -34,17 +34,11 @@ void Logs::apply() {
 }
 
 Logs::Log Logs::getLog(int index) {
-  if (index < 0 || index >= int(m_log.size()))
-    throw std::out_of_range("Index out of range");
-
-  return m_log[index];
+  return m_log.at(index);
 }
 
 int Logs::getTerm(int index) const {
-  if (index < 0 || index >= int(m_log.size()))
-    throw std::out_of_range("Index out of range");
-
-  return m_log[index].getTerm();
+  return m_log.at(index).getTerm();
 }
 
 std::vector<Logs::Log> Logs::getLastLogs(int startIndex) {
