@@ -32,6 +32,7 @@ class Client : ::REPL::Process {
   std::chrono::milliseconds m_requestTimeout;
   std::chrono::_V2::system_clock::time_point m_startTime;
   std::chrono::_V2::system_clock::time_point m_currentTime;
+  bool m_waitingForResponse = false;
 
   /**
    * REPL related attributes

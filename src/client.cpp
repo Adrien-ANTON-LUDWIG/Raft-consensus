@@ -80,12 +80,16 @@ void Client::run() {
       m_currentTime = std::chrono::system_clock::now();
 
       if (m_currentTime - m_startTime > m_requestTimeout) {
+        if (m_waitingForResponse)
+          m_leaderId = (m_leaderId + 1) % m_nbServer;
+          
         // Send request to the known leader
         spdlog::info("Sending {}",
                      m_commands[m_currentCommand]->toJSON().dump());
         send(*(m_commands[m_currentCommand]), m_leaderId,
              m_universe.clientServerWorld.com);
         m_startTime = std::chrono::system_clock::now();
+        m_waitingForResponse = true;
       }
 
       // Check if response received
@@ -95,6 +99,7 @@ void Client::run() {
       if (!status.has_value()) continue;
 
       ResponseToClient response;
+      m_waitingForResponse = false;
 
       // Handle response
       json data = recv(*status, m_universe.clientServerWorld.com);
