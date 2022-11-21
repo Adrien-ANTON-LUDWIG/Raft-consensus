@@ -109,3 +109,7 @@ exit
 
 This file will have clients 0, 1 and 2 (with resp. ranks 3, 4 and 5 because we assume there are two servers), to load the following files. Were you to have more clients, they would not do anything, even if started.
 If client 1 (rank 4) were not started, client 2 (rank 5) would still try to load "file4.txt" and not try to do the work of client 1.
+
+## Running the tests
+
+Just run `./test_runner.sh` and wait.
