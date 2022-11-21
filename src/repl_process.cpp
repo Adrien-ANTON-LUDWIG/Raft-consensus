@@ -16,4 +16,8 @@ void Process::handleREPLCrash(__attribute__ ((unused)) const json& json) {
 
   m_isCrashed = true;
 }
+
+void Process::handleREPLRecovery(__attribute__ ((unused)) const json& json) {
+  m_isCrashed = false;
+}
 }  // namespace REPL

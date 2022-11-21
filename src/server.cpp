@@ -41,9 +41,9 @@ void Server::checkREPL()
     else if (type == Message::Type::REPL_CRASH)
       handleREPLCrash(query);
     else if (type == Message::Type::REPL_SPEED)
-    {
       handleREPLSpeed(query);
-    }
+    else if (type == Message::Type::REPL_RECOVERY)
+      handleREPLRecovery(query);
     else if (type == Message::Type::REPL_STOP)
     {
       m_logs.writeLogs(m_universe.replWorld.rank);

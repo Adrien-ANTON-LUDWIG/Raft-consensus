@@ -6,6 +6,7 @@
 
 #include "messages/REPL/crash.hh"
 #include "messages/REPL/info.hh"
+#include "messages/REPL/recovery.hh"
 #include "messages/REPL/start.hh"
 #include "messages/REPL/stop.hh"
 #include "messages/mpi_wrappers.hh"
@@ -121,6 +122,23 @@ static void parseCommand(const std::string &line) {
     if (!parseRank(tokens[1], rank)) return;
 
     MessageNS::REPL::Crash message(g_universe.replWorld.rank);
+    send(message, rank, g_universe.replWorld.com);
+
+  } else if (cmd == "recovery") {
+    if (tokens.size() < 2) {
+      std::cerr << "Missing rank. Usage: recovery <rank>" << std::endl;
+      return;
+    }
+
+    if (!parseRank(tokens[1], rank)) return;
+
+    if (rank < 0 || rank >= g_serverCount) {
+      std::cerr << "Bad rank. Should be in range [" << g_serverCount << ","
+                << g_universe.replWorld.rank - 1 << "]." << std::endl;
+      return;
+    }
+
+    MessageNS::REPL::Recovery message(g_universe.replWorld.rank);
     send(message, rank, g_universe.replWorld.com);
 
   } else if (cmd == "info") {

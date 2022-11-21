@@ -24,6 +24,7 @@ class Message {
     REPL_SPEED,
     REPL_CRASH,
     REPL_START,
+    REPL_RECOVERY,
     REPL_INFO,
     REPL_INFO_RESPONSE,
     REPL_STOP,
