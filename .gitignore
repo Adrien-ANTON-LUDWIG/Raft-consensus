@@ -48,3 +48,4 @@ resources
 # Build
 build/
 logs/
+!tests/*.out
