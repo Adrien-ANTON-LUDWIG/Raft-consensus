@@ -34,13 +34,10 @@ namespace REPL
     std::cout << "----HELP----" << std::endl;
     ;
     printRanks();
-    std::cout << "speed <rank> low|medium|high     Change speed of process of "
-                 "rank <rank>\n";
+    std::cout << "speed <rank> low|medium|high     Change speed of process of rank <rank>\n";
     std::cout << "start <rank>                     Start client of rank <rank>\n";
-    std::cout
-        << "crash <rank>                     Crash process of rank <rank>\n";
-    std::cout << "info  <rank>                     Get REPL infos of the process "
-                 "of rank <rank>\n";
+    std::cout << "crash <rank>                     Crash process of rank <rank>\n";
+    std::cout << "info  <rank>                     Get REPL infos of the process of rank <rank>\n";
     std::cout << "exit                             Exit REPL CLI\n";
     std::cout << "help                             Display help" << std::endl;
   }
@@ -217,6 +214,9 @@ namespace REPL
 
   void start(int clientCount, int serverCount)
   {
+    g_clientCount = clientCount;
+    g_serverCount = serverCount;
+    
     if (g_commandsFile != "")
     {
       std::ifstream stream(g_commandsFile);
@@ -252,8 +252,6 @@ namespace REPL
     }
 
     std::cout << "REPL CLI enabled\n";
-    g_clientCount = clientCount;
-    g_serverCount = serverCount;
     printRanks();
     g_isRunning = true;
     std::cout << "> ";

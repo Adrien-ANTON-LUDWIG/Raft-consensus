@@ -1,5 +1,6 @@
 --
 LOAD file.txt
 $
-@50
+start 3
+@3000
 exit

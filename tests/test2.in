@@ -1,3 +1,7 @@
 --
 LOAD file1.txt
 LOAD file2.txt
+$
+start 3
+@6000
+exit
