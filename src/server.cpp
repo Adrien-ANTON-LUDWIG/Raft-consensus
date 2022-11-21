@@ -3,6 +3,7 @@
 #include "messages/CMD/loadResponse.hh"
 #include "messages/REPL/info.hh"
 #include "messages/RPC/appendEntries.hh"
+#include "messages/RPC/appendEntriesResponse.hh"
 #include "messages/RPC/requestVote.hh"
 #include "messages/RPC/vote.hh"
 #include "messages/mpi_wrappers.hh"
@@ -79,7 +80,8 @@ void Server::run() {
     }
   }
 
-  spdlog::info("Server {} stopped with {} logs.", m_universe.replWorld.rank, m_logs.getLastIndex());
+  spdlog::info("Server {} stopped with {} logs.", m_universe.replWorld.rank,
+               m_logs.getLastIndex());
 }
 
 // FOLLOWER
@@ -240,45 +242,41 @@ void Server::leaderUpdate() {
 
   // Send appendEntries RPCs to each follower
   for (int rank = 0; rank < m_universe.serverWorld.world_size; rank++) {
-      if (rank == m_universe.serverWorld.rank) continue;
+    if (rank == m_universe.serverWorld.rank) continue;
 
-      int prevLogIndex = m_nextIndex[rank] - 1;
-      int prevLogTerm = -1;
-      if (prevLogIndex > 0) m_logs.getLog(prevLogIndex).getTerm();
+    int prevLogIndex = m_nextIndex[rank] - 1;
+    int prevLogTerm = -1;
+    if (prevLogIndex > 0) m_logs.getLog(prevLogIndex).getTerm();
 
-      auto appendEntries = RPC::AppendEntries::createHeartbeat(
-          m_term, m_universe.serverWorld.rank, prevLogIndex, prevLogTerm,
-          m_logs.getCommitIndex());
-
+    if (m_logs.getLastIndex() >= m_nextIndex[rank]) {
       // If last log index ≥ nextIndex for a follower: send
-      // AppendEntries RPC with log entries starting at nextIndex
-      if (m_logs.getLastIndex() >= m_nextIndex[rank]) {
-        appendEntries.setEntries(m_logs.getLastLogs(m_nextIndex[rank]));
+      // AppendEntries RPC with log entries starting at nextIndex=
+      bool appendFailed = false;
+      do {
+        RPC::AppendEntries appendEntries(
+            m_term, m_universe.serverWorld.rank, prevLogIndex, prevLogTerm,
+            m_logs.getLastLogs(m_nextIndex[rank]), m_logs.getCommitIndex());
         send(appendEntries, rank, m_universe.serverWorld.com);
-      } else if (m_current_time - m_start_time >= m_heartbeat_timeout) {
-        // Idle time -> send heartbeat
-        send(appendEntries, rank, m_universe.serverWorld.com);
-      }
-  }
 
-  // Reset heartbeat timer
-  m_start_time = std::chrono::system_clock::now();
-  
-  int n = m_logs.getCommitIndex() + 1;
-  while (n < m_logs.getLastIndex()) {
-    int count = 0;
-    for (int rank = 0; rank < m_universe.serverWorld.world_size; rank++) {
-      if (m_matchIndex[rank] >= n) count++;
+        json responseData;
+        while (
+            waitForResponse(rank, m_universe.serverWorld.com, responseData)) {
+          checkREPL();
+          if (!m_isRunning) return;
+        }
+
+        handleAppendEntriesResponse(responseData);
+      } while (appendFailed);
+
+      // Reset heartbeat timer
+      m_start_time = std::chrono::system_clock::now();
     }
-
-    if (count >= m_universe.serverWorld.world_size / 2 &&
-        m_logs.getLog(n).getTerm() == m_term)
-      break;
-
-    n++;
   }
 
-  if (n < m_logs.getLastIndex()) m_logs.commitLog(n);
+  if (m_current_time - m_start_time >= m_heartbeat_timeout) {
+    // Idle period -> sending heartbeat
+    sendHeartbeat();
+  }
 }
 
 void Server::sendHeartbeat() {
@@ -291,6 +289,11 @@ void Server::sendHeartbeat() {
         m_term, m_universe.serverWorld.rank, prevLogIndex, prevLogTerm,
         m_logs.getCommitIndex());
     send(heartbeat, rank, m_universe.serverWorld.com);
+
+    // Flushing heartbeat response
+    json tmp;
+    while (waitForResponse(rank, m_universe.serverWorld.com, tmp)) {
+    }
   }
 
   // Reset heartbeat timer
