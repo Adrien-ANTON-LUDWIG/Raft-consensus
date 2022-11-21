@@ -263,6 +263,22 @@ void Server::leaderUpdate() {
 
   // Reset heartbeat timer
   m_start_time = std::chrono::system_clock::now();
+  
+  int n = m_logs.getCommitIndex() + 1;
+  while (n < m_logs.getLastIndex()) {
+    int count = 0;
+    for (int rank = 0; rank < m_universe.serverWorld.world_size; rank++) {
+      if (m_matchIndex[rank] >= n) count++;
+    }
+
+    if (count >= m_universe.serverWorld.world_size / 2 &&
+        m_logs.getLog(n).getTerm() == m_term)
+      break;
+
+    n++;
+  }
+
+  if (n < m_logs.getLastIndex()) m_logs.commitLog(n);
 }
 
 void Server::sendHeartbeat() {
