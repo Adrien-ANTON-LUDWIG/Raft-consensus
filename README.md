@@ -1,4 +1,4 @@
-# ALGOREP Project
+# Raft consensus algorithm
 
 ### Authors:
  - ANTON-LUDWIG Adrien
