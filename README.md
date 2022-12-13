@@ -115,3 +115,13 @@ If client 1 (rank 4) were not started, client 2 (rank 5) would still try to load
 Just run `./test_runner.sh` and wait.
 
 Be sure to have build the application before.
+
+## Built With
+
+[![C++](https://img.shields.io/badge/-C%2B%2B-red?style=for-the-badge&logo=cplusplus&logoColor=white)](https://en.wikipedia.org/wiki/C%2B%2B)
+[![Open MPI](https://img.shields.io/badge/Open%20MPI-006fb0?style=for-the-badge)](https://en.wikipedia.org/wiki/Open_MPI)
+[![Spdlog](https://img.shields.io/badge/-Spdlog-333333?style=for-the-badge&logo=Spdlog&logoColor=white)](https://github.com/gabime/spdlog)
+[![JSON for Modern C++](https://img.shields.io/badge/JSON-333333?style=for-the-badge)](https://json.nlohmann.me/)
+[![Makefile](https://img.shields.io/badge/Makefile-333333?style=for-the-badge)](https://en.wikipedia.org/wiki/Make_(software)#Makefile)
+[![CMake](https://img.shields.io/badge/CMake-064F8C?style=for-the-badge&logo=CMake&logoColor=white)](https://en.wikipedia.org/wiki/CMake) 
+[![Bash](https://img.shields.io/badge/Bash-4EAA25?logo=GNU%20Bash&logoColor=white&style=for-the-badge)](https://en.wikipedia.org/wiki/Bash_(Unix_shell))
